@@ -18,15 +18,32 @@ function run(command, options = {}) {
 	const execOptions = {
 		encoding: 'utf8',
 		cwd: options.cwd || process.cwd(),
-		stdio: options.silent ? 'pipe' : 'inherit',
+		stdio: 'pipe',
 	};
 
 	try {
 		const stdout = execSync(command, execOptions) || '';
-		return {stdout: stdout.toString(), exitCode: 0};
+		const output = stdout.toString();
+		if (!options.silent && output) {
+			process.stdout.write(output);
+		}
+
+		return {stdout: output, exitCode: 0};
 	} catch (error) {
+		const output = error.stdout ? error.stdout.toString() : '';
+		const stderr = error.stderr ? error.stderr.toString() : '';
+		if (!options.silent) {
+			if (output) {
+				process.stdout.write(output);
+			}
+
+			if (stderr) {
+				process.stderr.write(stderr);
+			}
+		}
+
 		return {
-			stdout: error.stdout ? error.stdout.toString() : '',
+			stdout: output,
 			exitCode: error.status || 1,
 		};
 	}

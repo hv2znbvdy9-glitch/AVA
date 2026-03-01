@@ -27,12 +27,12 @@ test('should execute a simple command and return stdout', () => {
 });
 
 test('should return exit code 0 on success', () => {
-	const result = run('true', {silent: true});
+	const result = run('node -e "process.exit(0)"', {silent: true});
 	assert.strictEqual(result.exitCode, 0);
 });
 
 test('should return non-zero exit code on failure', () => {
-	const result = run('false', {silent: true});
+	const result = run('node -e "process.exit(1)"', {silent: true});
 	assert.notStrictEqual(result.exitCode, 0);
 });
 
@@ -43,7 +43,7 @@ test('should throw if no command is provided', () => {
 });
 
 test('should accept a cwd option', () => {
-	const result = run('pwd', {silent: true, cwd: '/tmp'});
+	const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
 	assert.strictEqual(result.stdout.trim(), '/tmp');
 	assert.strictEqual(result.exitCode, 0);
 });
