@@ -1,0 +1,25 @@
+{
+  "name": "ava",
+  "version": "1.0.0",
+  "description": "AVA - A simple CLI task runner",
+  "main": "src/index.js",
+  "bin": {
+    "ava": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node test/run.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hv2znbvdy9-glitch/AVA.git"
+  },
+  "keywords": ["cli", "runner", "task"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hv2znbvdy9-glitch/AVA/issues"
+  },
+  "homepage": "https://github.com/hv2znbvdy9-glitch/AVA#readme"
+}
