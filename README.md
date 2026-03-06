@@ -23,6 +23,7 @@ const { run } = require('ava');
 
 const result = run('echo hello', { silent: true });
 console.log(result.stdout); // "hello\n"
+console.log(result.stderr); // ""
 console.log(result.exitCode); // 0
 ```
 
