@@ -8,7 +8,7 @@ const {execSync} = require('child_process');
  * @param {object} [options] - Options for execution.
  * @param {boolean} [options.silent] - If true, suppress stdout output.
  * @param {string} [options.cwd] - Working directory for the command.
- * @returns {{stdout: string, exitCode: number}} Result of the execution.
+ * @returns {{stdout: string, stderr: string, exitCode: number}} Result of the execution.
  */
 function run(command, options = {}) {
 	if (!command || typeof command !== 'string') {
@@ -28,7 +28,7 @@ function run(command, options = {}) {
 			process.stdout.write(output);
 		}
 
-		return {stdout: output, exitCode: 0};
+		return {stdout: output, stderr: '', exitCode: 0};
 	} catch (error) {
 		const output = error.stdout ? error.stdout.toString() : '';
 		const stderr = error.stderr ? error.stderr.toString() : '';
@@ -44,6 +44,7 @@ function run(command, options = {}) {
 
 		return {
 			stdout: output,
+			stderr,
 			exitCode: error.status || 1,
 		};
 	}

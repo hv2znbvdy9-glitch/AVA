@@ -42,6 +42,18 @@ test('should throw if no command is provided', () => {
 	assert.throws(() => run(undefined), {message: 'A command string is required'});
 });
 
+test('should return empty stderr on success', () => {
+	const result = run('echo hello', {silent: true});
+	assert.strictEqual(result.stderr, '');
+});
+
+test('should capture stderr on failure', () => {
+	const result = run('node -e "process.stdout.write(\'out\'); process.stderr.write(\'error output\'); process.exit(1)"', {silent: true});
+	assert.ok(result.stderr.includes('error output'));
+	assert.strictEqual(result.stdout, 'out');
+	assert.notStrictEqual(result.exitCode, 0);
+});
+
 test('should accept a cwd option', () => {
 	const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
 	assert.strictEqual(result.stdout.trim(), '/tmp');
