@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const {run} = require('../src/run');
+const {run, runAll} = require('../src/run');
 
 let passed = 0;
 let failed = 0;
@@ -9,6 +9,18 @@ let failed = 0;
 function test(name, fn) {
 	try {
 		fn();
+		passed++;
+		console.log(`  ✓ ${name}`);
+	} catch (error) {
+		failed++;
+		console.error(`  ✗ ${name}`);
+		console.error(`    ${error.message}`);
+	}
+}
+
+async function testAsync(name, fn) {
+	try {
+		await fn();
 		passed++;
 		console.log(`  ✓ ${name}`);
 	} catch (error) {
@@ -48,5 +60,50 @@ test('should accept a cwd option', () => {
 	assert.strictEqual(result.exitCode, 0);
 });
 
-console.log(`\n${passed} passing, ${failed} failing`);
-process.exit(failed > 0 ? 1 : 0);
+async function main() {
+	await testAsync('runAll: should run a battery of commands and return a matrix of results', async () => {
+		const results = await runAll(['echo foo', 'echo bar'], {silent: true});
+		assert.strictEqual(results.length, 2);
+		assert.strictEqual(results[0].command, 'echo foo');
+		assert.strictEqual(results[0].stdout.trim(), 'foo');
+		assert.strictEqual(results[0].exitCode, 0);
+		assert.strictEqual(results[1].command, 'echo bar');
+		assert.strictEqual(results[1].stdout.trim(), 'bar');
+		assert.strictEqual(results[1].exitCode, 0);
+	});
+
+	await testAsync('runAll: should include non-zero exit codes in results', async () => {
+		const results = await runAll(
+			['echo ok', 'node -e "process.exit(2)"'],
+			{silent: true}
+		);
+		assert.strictEqual(results[0].exitCode, 0);
+		assert.notStrictEqual(results[1].exitCode, 0);
+	});
+
+	await testAsync('runAll: should run commands with concurrency > 1', async () => {
+		const results = await runAll(
+			['echo a', 'echo b', 'echo c'],
+			{silent: true, concurrency: 2}
+		);
+		assert.strictEqual(results.length, 3);
+		assert.strictEqual(results[0].stdout.trim(), 'a');
+		assert.strictEqual(results[1].stdout.trim(), 'b');
+		assert.strictEqual(results[2].stdout.trim(), 'c');
+	});
+
+	await testAsync('runAll: should throw if commands is not an array', async () => {
+		await assert.rejects(async () => runAll('echo hello'), {message: 'A commands array is required'});
+		await assert.rejects(async () => runAll(null), {message: 'A commands array is required'});
+	});
+
+	await testAsync('runAll: should return an empty array for an empty commands list', async () => {
+		const results = await runAll([], {silent: true});
+		assert.deepStrictEqual(results, []);
+	});
+
+	console.log(`\n${passed} passing, ${failed} failing`);
+	process.exit(failed > 0 ? 1 : 0);
+}
+
+main();
