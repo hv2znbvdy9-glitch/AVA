@@ -48,5 +48,16 @@ test('should accept a cwd option', () => {
 	assert.strictEqual(result.exitCode, 0);
 });
 
+test('should return empty stderr on success', () => {
+	const result = run('echo hello', {silent: true});
+	assert.strictEqual(result.stderr, '');
+});
+
+test('should capture stderr on failure', () => {
+	const result = run('node -e "process.stderr.write(\'err\\n\'); process.exit(1)"', {silent: true});
+	assert.strictEqual(result.stderr.trim(), 'err');
+	assert.notStrictEqual(result.exitCode, 0);
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
