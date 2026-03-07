@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assert');
+const assert = require('node:assert');
 const {run} = require('../src/run');
 
 let passed = 0;

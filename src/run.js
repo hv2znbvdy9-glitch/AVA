@@ -1,6 +1,6 @@
 'use strict';
 
-const {execSync} = require('child_process');
+const {execSync} = require('node:child_process');
 
 /**
  * Execute a command string in a child process.
