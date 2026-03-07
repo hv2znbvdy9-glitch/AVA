@@ -1,5 +1,5 @@
 'use strict';
 
-const {run} = require('./run');
+const {run, runAll} = require('./run');
 
-module.exports = {run};
+module.exports = {run, runAll};

@@ -50,4 +50,18 @@ function run(command, options = {}) {
 	}
 }
 
-module.exports = {run};
+/**
+ * Execute an array of command strings sequentially.
+ * @param {string[]} commands - The commands to run in order.
+ * @param {object} [options] - Options passed to each run() call.
+ * @returns {{stdout: string, stderr: string, exitCode: number}[]} Results for each command.
+ */
+function runAll(commands, options = {}) {
+	if (!Array.isArray(commands)) {
+		throw new Error('commands must be an array');
+	}
+
+	return commands.map((command) => run(command, options));
+}
+
+module.exports = {run, runAll};
