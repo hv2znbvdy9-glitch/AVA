@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const {run} = require('../src/run');
+const {run, runAll} = require('../src/run');
 
 let passed = 0;
 let failed = 0;
@@ -58,6 +58,34 @@ test('should accept a cwd option', () => {
 	const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
 	assert.strictEqual(result.stdout.trim(), '/tmp');
 	assert.strictEqual(result.exitCode, 0);
+});
+
+console.log('\nrunAll command tests\n');
+
+test('should run multiple commands and return an array of results', () => {
+	const results = runAll(['echo one', 'echo two'], {silent: true});
+	assert.strictEqual(results.length, 2);
+	assert.strictEqual(results[0].stdout.trim(), 'one');
+	assert.strictEqual(results[1].stdout.trim(), 'two');
+});
+
+test('should return exit codes for each command', () => {
+	const results = runAll(
+		['node -e "process.exit(0)"', 'node -e "process.exit(1)"'],
+		{silent: true},
+	);
+	assert.strictEqual(results[0].exitCode, 0);
+	assert.notStrictEqual(results[1].exitCode, 0);
+});
+
+test('should throw if commands is not an array', () => {
+	assert.throws(() => runAll('echo hello'), {message: 'commands must be an array'});
+	assert.throws(() => runAll(null), {message: 'commands must be an array'});
+});
+
+test('should return empty array for empty commands list', () => {
+	const results = runAll([], {silent: true});
+	assert.deepStrictEqual(results, []);
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);

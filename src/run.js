@@ -50,4 +50,20 @@ function run(command, options = {}) {
 	}
 }
 
-module.exports = {run};
+/**
+ * Execute an array of commands sequentially in child processes.
+ * @param {string[]} commands - The commands to run.
+ * @param {object} [options] - Options passed to each run() call.
+ * @param {boolean} [options.silent] - If true, suppress stdout output.
+ * @param {string} [options.cwd] - Working directory for each command.
+ * @returns {{stdout: string, stderr: string, exitCode: number}[]} Results for each command.
+ */
+function runAll(commands, options = {}) {
+	if (!Array.isArray(commands)) {
+		throw new Error('commands must be an array');
+	}
+
+	return commands.map((command) => run(command, options));
+}
+
+module.exports = {run, runAll};
