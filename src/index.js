@@ -1,5 +1,6 @@
 'use strict';
 
-const {run} = require('./run');
+const {run, runAll} = require('./run');
+const {hexToRgb, colorize, ava, AVA_COLOR} = require('./color');
 
-module.exports = {run};
+module.exports = {run, runAll, hexToRgb, colorize, ava, AVA_COLOR};
