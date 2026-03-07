@@ -17,7 +17,7 @@ npx ava "echo hello"
 npx ava --color
 ```
 
-Use `--color` to print the AVA brand color.
+Use `--color` to print the AVA brand color and exit.
 
 ### As a library
 
