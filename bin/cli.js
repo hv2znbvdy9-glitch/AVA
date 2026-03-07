@@ -12,5 +12,11 @@ if (args.length === 0) {
 }
 
 const command = args.join(' ');
-const result = run(command, {silent: false});
-process.exit(result.exitCode);
+
+try {
+	const result = run(command, {silent: false});
+	process.exit(result.exitCode);
+} catch (error) {
+	console.error(`Error: ${error.message}`);
+	process.exit(1);
+}
