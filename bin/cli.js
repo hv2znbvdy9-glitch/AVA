@@ -2,12 +2,19 @@
 'use strict';
 
 const {run} = require('../src/run');
+const {brandColor} = require('../src/color');
 
 const args = process.argv.slice(2);
+
+if (args.length === 1 && args[0] === '--color') {
+	console.log(brandColor);
+	process.exit(0);
+}
 
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('Example: ava "echo hello"');
+	console.error('Example: ava --color');
 	process.exit(1);
 }
 
