@@ -1,6 +1,9 @@
 'use strict';
 
 const assert = require('assert');
+const {spawnSync} = require('child_process');
+const path = require('path');
+const {getSessionOverview} = require('../src/overview');
 const {run} = require('../src/run');
 
 let passed = 0;
@@ -58,6 +61,14 @@ test('should accept a cwd option', () => {
 	const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
 	assert.strictEqual(result.stdout.trim(), '/tmp');
 	assert.strictEqual(result.exitCode, 0);
+});
+
+test('should print session overview with --overview', () => {
+	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
+	const result = spawnSync('node', [cliPath, '--overview'], {encoding: 'utf8'});
+	assert.strictEqual(result.status, 0);
+	assert.strictEqual(result.stderr, '');
+	assert.strictEqual(result.stdout.trim(), getSessionOverview().trim());
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);

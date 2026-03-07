@@ -16,6 +16,14 @@ npm install
 npx ava "echo hello"
 ```
 
+### Session overview
+
+```bash
+npx ava --overview
+```
+
+Prints an AVA <2 session overview to help structure the start of a new session.
+
 ### As a library
 
 ```js

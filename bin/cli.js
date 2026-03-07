@@ -1,13 +1,20 @@
 #!/usr/bin/env node
 'use strict';
 
+const {getSessionOverview} = require('../src/overview');
 const {run} = require('../src/run');
 
 const args = process.argv.slice(2);
 
+if (args.length === 1 && args[0] === '--overview') {
+	console.log(getSessionOverview());
+	process.exit(0);
+}
+
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('Example: ava "echo hello"');
+	console.error('Overview: ava --overview');
 	process.exit(1);
 }
 
