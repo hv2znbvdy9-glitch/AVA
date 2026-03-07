@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const {run} = require('../src/run');
+const {brandColor} = require('../src');
 
 let passed = 0;
 let failed = 0;
@@ -57,6 +58,16 @@ test('should capture stderr on failure', () => {
 test('should accept a cwd option', () => {
 	const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
 	assert.strictEqual(result.stdout.trim(), '/tmp');
+	assert.strictEqual(result.exitCode, 0);
+});
+
+test('should expose the brand color constant', () => {
+	assert.strictEqual(brandColor, '#0969DA');
+});
+
+test('should print the brand color via the CLI', () => {
+	const result = run('node bin/cli.js --color', {silent: true});
+	assert.strictEqual(result.stdout.trim(), '#0969DA');
 	assert.strictEqual(result.exitCode, 0);
 });
 

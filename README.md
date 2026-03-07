@@ -14,17 +14,21 @@ npm install
 
 ```bash
 npx ava "echo hello"
+npx ava --color
 ```
+
+Use `--color` to print the AVA brand color.
 
 ### As a library
 
 ```js
-const { run } = require('ava');
+const { run, brandColor } = require('ava');
 
 const result = run('echo hello', { silent: true });
 console.log(result.stdout); // "hello\n"
 console.log(result.stderr); // ""
 console.log(result.exitCode); // 0
+console.log(brandColor); // "#0969DA"
 ```
 
 ### Options

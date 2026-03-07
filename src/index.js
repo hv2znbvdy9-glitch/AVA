@@ -1,5 +1,6 @@
 'use strict';
 
 const {run} = require('./run');
+const {brandColor} = require('./color');
 
-module.exports = {run};
+module.exports = {run, brandColor};
