@@ -2,8 +2,14 @@
 'use strict';
 
 const {run} = require('../src/run');
+const {start} = require('../src/start');
 
 const args = process.argv.slice(2);
+
+if (args[0] === '--start') {
+	start();
+	process.exit(0);
+}
 
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
