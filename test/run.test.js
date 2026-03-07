@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const {run, runAll} = require('../src/run');
+const {hexToRgb, colorize, ava, AVA_COLOR} = require('../src/color');
 
 let passed = 0;
 let failed = 0;
@@ -58,6 +59,41 @@ test('should accept a cwd option', () => {
 	const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
 	assert.strictEqual(result.stdout.trim(), '/tmp');
 	assert.strictEqual(result.exitCode, 0);
+});
+
+console.log('\ncolor tests\n');
+
+test('hexToRgb: should parse #0969DA correctly', () => {
+	const {r, g, b} = hexToRgb(AVA_COLOR);
+	assert.strictEqual(r, 9);
+	assert.strictEqual(g, 105);
+	assert.strictEqual(b, 218);
+});
+
+test('hexToRgb: should work without the leading #', () => {
+	const {r, g, b} = hexToRgb('0969DA');
+	assert.strictEqual(r, 9);
+	assert.strictEqual(g, 105);
+	assert.strictEqual(b, 218);
+});
+
+test('hexToRgb: should throw on invalid hex color', () => {
+	assert.throws(() => hexToRgb('gg0000'), {message: 'Invalid hex color: gg0000'});
+	assert.throws(() => hexToRgb('#xyz'), {message: 'Invalid hex color: #xyz'});
+});
+
+test('colorize: should wrap text with ANSI 24-bit color codes', () => {
+	const result = colorize('hello', '#0969DA');
+	assert.ok(result.startsWith('\x1b[38;2;9;105;218m'));
+	assert.ok(result.endsWith('\x1b[0m'));
+	assert.ok(result.includes('hello'));
+});
+
+test('ava: should colorize text with the AVA brand color', () => {
+	const result = ava('AVA');
+	assert.ok(result.startsWith('\x1b[38;2;9;105;218m'));
+	assert.ok(result.endsWith('\x1b[0m'));
+	assert.ok(result.includes('AVA'));
 });
 
 async function main() {
