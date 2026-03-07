@@ -16,6 +16,14 @@ npm install
 npx ava "echo hello"
 ```
 
+### Start banner
+
+Print the AVA session start banner ("START - JETZT!"):
+
+```bash
+npx ava --start
+```
+
 ### As a library
 
 ```js
