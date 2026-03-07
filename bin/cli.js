@@ -19,8 +19,18 @@ if (args.includes('--overview')) {
 
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
+	console.error('       ava run <command>');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
+}
+
+if (args[0] === 'run') {
+	args.shift();
+	if (args.length === 0) {
+		console.error('Usage: ava run <command>');
+		console.error('Example: ava run "echo hello"');
+		process.exit(1);
+	}
 }
 
 const command = args.join(' ');
