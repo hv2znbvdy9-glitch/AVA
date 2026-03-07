@@ -13,11 +13,22 @@ if (args.length === 1 && args[0] === '--overview') {
 
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
+	console.error('       ava run <command>');
 	console.error('Example: ava "echo hello"');
+	console.error('Example: ava run "echo hello"');
 	console.error('Overview: ava --overview');
 	process.exit(1);
 }
 
-const command = args.join(' ');
+// Support explicit `ava run <command>` subcommand
+const commandArgs = args[0] === 'run' ? args.slice(1) : args;
+
+if (commandArgs.length === 0) {
+	console.error('Usage: ava run <command>');
+	console.error('Example: ava run "echo hello"');
+	process.exit(1);
+}
+
+const command = commandArgs.join(' ');
 const result = run(command, {silent: false});
 process.exit(result.exitCode);

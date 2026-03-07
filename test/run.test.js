@@ -71,5 +71,19 @@ test('should print session overview with --overview', () => {
 	assert.strictEqual(result.stdout.trim(), getSessionOverview().trim());
 });
 
+test('should run a command via explicit run subcommand', () => {
+	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
+	const result = spawnSync('node', [cliPath, 'run', 'echo hello'], {encoding: 'utf8'});
+	assert.strictEqual(result.status, 0);
+	assert.strictEqual(result.stdout.trim(), 'hello');
+});
+
+test('should exit with error when run subcommand has no command', () => {
+	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
+	const result = spawnSync('node', [cliPath, 'run'], {encoding: 'utf8'});
+	assert.strictEqual(result.status, 1);
+	assert.ok(result.stderr.includes('Usage: ava run'));
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
