@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node test/run.test.js"
+    "test": "node test/run.test.js && node test/color.test.js"
   },
   "repository": {
     "type": "git",
