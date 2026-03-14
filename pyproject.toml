@@ -67,9 +67,12 @@ dev = [
 
 [project.scripts]
 ava = "ava.cli.main:app"
+ava-lsp = "ava.lsp.server:main"
 
 [tool.setuptools]
-packages = ["ava"]
+
+[tool.setuptools.packages.find]
+include = ["ava*"]
 
 [tool.black]
 line-length = 100
