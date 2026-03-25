@@ -15,6 +15,8 @@ function run(command, options = {}) {
 		throw new Error('A command string is required');
 	}
 
+	options = options || {};
+
 	const execOptions = {
 		encoding: 'utf8',
 		cwd: options.cwd || process.cwd(),
@@ -60,6 +62,8 @@ function runAll(commands, options = {}) {
 	if (!Array.isArray(commands)) {
 		throw new Error('commands must be an array');
 	}
+
+	options = options || {};
 
 	return commands.map((command) => run(command, options));
 }
