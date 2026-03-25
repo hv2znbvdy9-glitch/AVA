@@ -10,7 +10,8 @@ const {execSync} = require('child_process');
  * @param {string} [options.cwd] - Working directory for the command.
  * @returns {{stdout: string, stderr: string, exitCode: number}} Result of the execution.
  */
-function run(command, options = {}) {
+function run(command, options) {
+	options = options || {};
 	if (!command || typeof command !== 'string') {
 		throw new Error('A command string is required');
 	}
@@ -56,7 +57,8 @@ function run(command, options = {}) {
  * @param {object} [options] - Options passed to each run() call.
  * @returns {{stdout: string, stderr: string, exitCode: number}[]} Results for each command.
  */
-function runAll(commands, options = {}) {
+function runAll(commands, options) {
+	options = options || {};
 	if (!Array.isArray(commands)) {
 		throw new Error('commands must be an array');
 	}
