@@ -1,5 +1,5 @@
 #requires -RunAsAdministrator
-
+[CmdletBinding()]
 param(
     [switch]$RunOnce,
     [switch]$InstallTask,
@@ -8,33 +8,36 @@ param(
     [switch]$HardenRemoteServices
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 # =========================
 # CONFIG
 # =========================
 $Root = "C:\Windows\SecurityGuardian"
-$LogDir = "$Root\Logs"
-$ReportDir = "$Root\Reports"
-$StateDir = "$Root\State"
+$LogDir = Join-Path $Root "Logs"
+$ReportDir = Join-Path $Root "Reports"
+$StateDir = Join-Path $Root "State"
 $TaskName = "WindowsSecurityGuardian"
 
-$EventLog = "$LogDir\events.jsonl"
-$AlertLog = "$LogDir\alerts.jsonl"
-$BaselinePath = "$StateDir\baseline.json"
-$HashPath = "$StateDir\integrity.hash"
+$EventLog = Join-Path $LogDir "events.jsonl"
+$AlertLog = Join-Path $LogDir "alerts.jsonl"
+$BaselinePath = Join-Path $StateDir "baseline.json"
+$HashPath = Join-Path $StateDir "integrity.hash"
 
 $RulePrefix = "AVA_Block_"
+$Ports = @(21,23,135,139,445,3389,5985,5986)
 
-# Allowed admins (customize per environment)
-$AllowedAdmins = @(
+$ComputerAdmins = @(
     "Administrator",
-    "$env:USERNAME"
-)
+    "$env:COMPUTERNAME\$env:USERNAME",
+    $env:USERNAME
+) | Select-Object -Unique
 
-# Canary files
 $CanaryFiles = @(
-    "$Root\finance_decoy_2026.txt",
-    "$Root\admin_notes_decoy.txt",
-    "$Root\vpn_inventory_decoy.txt"
+    (Join-Path $Root "finance_decoy_2026.txt"),
+    (Join-Path $Root "admin_notes_decoy.txt"),
+    (Join-Path $Root "vpn_inventory_decoy.txt")
 )
 
 # =========================
@@ -42,36 +45,67 @@ $CanaryFiles = @(
 # =========================
 New-Item -ItemType Directory -Path $Root,$LogDir,$ReportDir,$StateDir -Force | Out-Null
 
-function Log($obj,$path){
-    $json = $obj | ConvertTo-Json -Compress -Depth 5
-    Add-Content -Path $path -Value $json
+function Write-JsonLine {
+    param(
+        [Parameter(Mandatory)][object]$Object,
+        [Parameter(Mandatory)][string]$Path
+    )
+    $json = $Object | ConvertTo-Json -Compress -Depth 8
+    Add-Content -Path $Path -Value $json -Encoding UTF8
 }
 
-function Alert($msg,$severity="MEDIUM"){
-    Log @{
-        time=(Get-Date)
-        severity=$severity
-        message=$msg
-    } $AlertLog
+function Write-Alert {
+    param(
+        [Parameter(Mandatory)][string]$Message,
+        [ValidateSet('LOW','MEDIUM','HIGH','CRITICAL')]
+        [string]$Severity = 'MEDIUM'
+    )
+
+    Write-JsonLine -Object @{
+        time     = (Get-Date).ToString("s")
+        severity = $Severity
+        message  = $Message
+    } -Path $AlertLog
+}
+
+function Write-EventEntry {
+    param(
+        [Parameter(Mandatory)][string]$Category,
+        [Parameter(Mandatory)][string]$Message,
+        [string]$Severity = 'INFO'
+    )
+
+    Write-JsonLine -Object @{
+        time     = (Get-Date).ToString("s")
+        category = $Category
+        severity = $Severity
+        message  = $Message
+    } -Path $EventLog
 }
 
 # =========================
 # BASELINE
 # =========================
 function Save-Baseline {
-    $admins = Get-LocalGroupMember Administrators | Select Name
+    $admins = Get-LocalGroupMember -Group "Administrators" |
+        Select-Object Name, ObjectClass, PrincipalSource
+
     $baseline = @{
-        created=(Get-Date)
-        admins=$admins
+        created = (Get-Date).ToString("s")
+        admins  = $admins
     }
-    $baseline | ConvertTo-Json | Set-Content $BaselinePath
+
+    $baseline | ConvertTo-Json -Depth 6 | Set-Content -Path $BaselinePath -Encoding UTF8
+    Write-EventEntry -Category "baseline" -Message "Baseline gespeichert."
 }
 
 function Check-Admins {
-    $admins = Get-LocalGroupMember Administrators | Select Name
-    foreach($a in $admins){
-        if($AllowedAdmins -notcontains $a.Name){
-            Alert "UNAUTHORIZED ADMIN: $($a.Name)" "HIGH"
+    $admins = Get-LocalGroupMember -Group "Administrators" |
+        Select-Object -ExpandProperty Name
+
+    foreach ($admin in $admins) {
+        if ($ComputerAdmins -notcontains $admin) {
+            Write-Alert -Message "UNAUTHORIZED ADMIN DETECTED: $admin" -Severity HIGH
         }
     }
 }
@@ -79,62 +113,39 @@ function Check-Admins {
 # =========================
 # CANARY SYSTEM
 # =========================
-function Init-Canaries {
-    foreach($file in $CanaryFiles){
-        if(-not (Test-Path $file)){
-            "DO NOT TOUCH - MONITORED" | Set-Content $file
+function Initialize-Canaries {
+    foreach ($file in $CanaryFiles) {
+        if (-not (Test-Path -LiteralPath $file)) {
+            "DO NOT TOUCH - MONITORED" | Set-Content -Path $file -Encoding UTF8
+            Write-EventEntry -Category "canary" -Message "Canary erstellt: $file"
         }
     }
 }
 
 function Check-Canaries {
-    foreach($file in $CanaryFiles){
-        if(-not (Test-Path $file)){
-            Alert "CANARY DELETED: $file" "HIGH"
+    foreach ($file in $CanaryFiles) {
+        if (-not (Test-Path -LiteralPath $file)) {
+            Write-Alert -Message "CANARY DELETED OR MISSING: $file" -Severity HIGH
         }
-    }
-}
-
-# =========================
-# CANARY WATCHDOG (FileSystemWatcher)
-# =========================
-function Start-CanaryWatchdog {
-    foreach($file in $CanaryFiles) {
-        $path = Split-Path $file
-        $filter = Split-Path $file -Leaf
-
-        $watcher = New-Object System.IO.FileSystemWatcher
-        $watcher.Path = $path
-        $watcher.Filter = $filter
-        $watcher.IncludeSubdirectories = $false
-        $watcher.EnableRaisingEvents = $true
-
-        $action = {
-            $path = $Event.SourceEventArgs.FullPath
-            $changeType = $Event.SourceEventArgs.ChangeType
-            Write-Host "[!] ALERT: Canary File $changeType - $path" -ForegroundColor Red
-        }
-
-        Register-ObjectEvent $watcher "Changed" -Action $action
-        Register-ObjectEvent $watcher "Deleted" -Action $action
-        Register-ObjectEvent $watcher "Renamed" -Action $action
     }
 }
 
 # =========================
 # INTEGRITY CHECK
 # =========================
-function Save-Hash {
-    $hash = Get-FileHash $PSCommandPath
-    $hash.Hash | Set-Content $HashPath
+function Save-ScriptHash {
+    if (-not $PSCommandPath) { return }
+    $hash = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash
+    Set-Content -Path $HashPath -Value $hash -Encoding ASCII
 }
 
-function Check-Hash {
-    if(Test-Path $HashPath){
-        $old = Get-Content $HashPath
-        $new = (Get-FileHash $PSCommandPath).Hash
-        if($old -ne $new){
-            Alert "SCRIPT TAMPER DETECTED!" "HIGH"
+function Check-ScriptHash {
+    if (-not $PSCommandPath) { return }
+    if (Test-Path -LiteralPath $HashPath) {
+        $old = (Get-Content -Path $HashPath -Raw).Trim()
+        $new = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash
+        if ($old -and $old -ne $new) {
+            Write-Alert -Message "SCRIPT TAMPER DETECTED" -Severity HIGH
         }
     }
 }
@@ -142,147 +153,205 @@ function Check-Hash {
 # =========================
 # FIREWALL
 # =========================
-$Ports = @(21,23,135,139,445,3389,5985,5986)
+function Apply-FirewallRules {
+    foreach ($port in $Ports) {
+        $name = "$RulePrefix$port"
+        $existing = Get-NetFirewallRule -DisplayName $name -ErrorAction SilentlyContinue
+        if (-not $existing) {
+            New-NetFirewallRule `
+                -DisplayName $name `
+                -Direction Inbound `
+                -Action Block `
+                -Protocol TCP `
+                -LocalPort $port | Out-Null
 
-function Apply-FW {
-    foreach($p in $Ports){
-        if(-not (Get-NetFirewallRule -DisplayName "$RulePrefix$p" -ErrorAction SilentlyContinue)){
-            New-NetFirewallRule -DisplayName "$RulePrefix$p" -Direction Inbound -Action Block -Protocol TCP -LocalPort $p
+            Write-EventEntry -Category "firewall" -Message "Firewall-Regel erstellt: $name"
         }
     }
+}
+
+function Rollback-FirewallRules {
+    Get-NetFirewallRule -DisplayName "$RulePrefix*" -ErrorAction SilentlyContinue |
+        Remove-NetFirewallRule -ErrorAction SilentlyContinue
+
+    Write-EventEntry -Category "firewall" -Message "AVA-Firewall-Regeln entfernt."
+}
+
+# =========================
+# REMOTE SERVICES HARDENING
+# =========================
+function Invoke-RemoteServicesHardening {
+    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 1
+    Disable-NetFirewallRule -DisplayGroup "Remote Desktop" -ErrorAction SilentlyContinue
+
+    foreach ($svc in @('RemoteRegistry','WinRM')) {
+        $service = Get-Service -Name $svc -ErrorAction SilentlyContinue
+        if ($service) {
+            if ($service.Status -ne 'Stopped') {
+                Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+            }
+            Set-Service -Name $svc -StartupType Disabled -ErrorAction SilentlyContinue
+        }
+    }
+
+    Write-EventEntry -Category "hardening" -Message "Remote Services gehärtet."
 }
 
 # =========================
 # NETWORK MONITOR
 # =========================
 function Check-Network {
-    $conns = Get-NetTCPConnection -State Established
-    foreach($c in $conns){
-        if($c.RemoteAddress -notlike "192.168*" -and $c.RemoteAddress -ne "127.0.0.1"){
-            $proc = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue
-            if($proc.Name -in @("powershell","cmd","python")){
-                Alert "SUSPICIOUS CONNECTION: $($proc.Name) -> $($c.RemoteAddress)" "MEDIUM"
-            }
-        }
-    }
-}
+    $connections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue
 
-function Check-Network-Advanced {
-    $conns = Get-NetTCPConnection -State Established
-    foreach($c in $conns){
-        if($c.RemoteAddress -match "^127\.|^192\.168\.|^10\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.") { continue }
+    foreach ($c in $connections) {
+        $remote = $c.RemoteAddress
+
+        if (
+            $remote -match '^127\.' -or
+            $remote -match '^192\.168\.' -or
+            $remote -match '^10\.' -or
+            $remote -match '^172\.(1[6-9]|2[0-9]|3[0-1])\.'
+        ) {
+            continue
+        }
 
         $proc = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue
-        if($proc) {
-            $path = $proc.Path
-            if($proc.Name -in @('powershell','cmd','python','certutil','bitsadmin') -or $path -like "*\AppData\Local\Temp\*") {
-                Alert "NETWORK ALERT: $($proc.Name) -> $($c.RemoteAddress):$($c.RemotePort) (Path: $path)" "CRITICAL"
-            }
+        if (-not $proc) { continue }
+
+        $name = $proc.Name.ToLowerInvariant()
+        $path = $null
+        try { $path = $proc.Path } catch {}
+
+        if ($name -in @('powershell','pwsh','cmd','python','certutil','bitsadmin')) {
+            Write-Alert -Message "SUSPICIOUS CONNECTION: $name -> $remote`:$($c.RemotePort)" -Severity HIGH
+        }
+        elseif ($path -and $path -like "*\AppData\Local\Temp\*") {
+            Write-Alert -Message "TEMP PATH NETWORK PROCESS: $name -> $remote`:$($c.RemotePort) [$path]" -Severity CRITICAL
         }
     }
 }
 
 # =========================
-# SUSPICIOUS PROCESS SCANNER
+# PROCESS CHECK
 # =========================
 function Scan-SuspiciousProcesses {
-    $SuspiciousArgs = @("-enc", "encodedcommand", "windowstyle hidden", "bypass", "nop")
+    $suspiciousFlags = @("-enc", "encodedcommand", "windowstyle hidden", "bypass", "nop")
+    $psProcs = Get-CimInstance Win32_Process | Where-Object {
+        $_.Name -in @('powershell.exe','pwsh.exe')
+    }
 
-    $psProcs = Get-WmiObject Win32_Process -Filter "name='powershell.exe' OR name='pwsh.exe'"
+    foreach ($p in $psProcs) {
+        $cmdLine = [string]$p.CommandLine
+        if ([string]::IsNullOrWhiteSpace($cmdLine)) { continue }
 
-    foreach($p in $psProcs) {
-        $cmdLine = $p.CommandLine.ToLower()
-        $foundFlags = @()
-
-        foreach($flag in $SuspiciousArgs) {
-            if($cmdLine -like "*$flag*") { $foundFlags += $flag }
+        $cmdLower = $cmdLine.ToLowerInvariant()
+        $foundFlags = foreach ($flag in $suspiciousFlags) {
+            if ($cmdLower.Contains($flag)) { $flag }
         }
 
-        if($foundFlags.Count -ge 2 -or $cmdLine.Contains("-enc")) {
-            Alert "SUSPICIOUS PS PROCESS: PID $($p.ProcessId) | Args: $foundFlags" "CRITICAL"
+        if (($foundFlags | Measure-Object).Count -ge 2 -or $cmdLower.Contains("-enc")) {
+            Write-Alert -Message "SUSPICIOUS PS PROCESS: PID $($p.ProcessId) | Flags: $($foundFlags -join ', ')" -Severity CRITICAL
         }
     }
 }
 
 # =========================
-# THREAT RESPONSE
+# REPORT
 # =========================
-function Terminate-Threat {
-    param($ProcessId)
-    Stop-Process -Id $ProcessId -Force
-    Alert "AUTO-DEFENSE: Process $ProcessId terminated!" "HIGH"
-}
-
-# =========================
-# HTML REPORT
-# =========================
-function Build-HTML {
-    $alerts = Get-Content $AlertLog -ErrorAction SilentlyContinue | ConvertFrom-Json
-
-    $htmlBody = foreach ($a in $alerts) {
-        "<tr><td>$($a.time)</td><td>$($a.severity)</td><td>$($a.message)</td></tr>"
+function Build-HTMLReport {
+    $items = @()
+    if (Test-Path -LiteralPath $AlertLog) {
+        $items = Get-Content -Path $AlertLog -ErrorAction SilentlyContinue |
+            Where-Object { $_.Trim() } |
+            ForEach-Object {
+                try { $_ | ConvertFrom-Json } catch { $null }
+            } |
+            Where-Object { $_ }
     }
 
-    $finalHtml = @"
-<!DOCTYPE html>
-<html>
-<head>
-<title>AVA Security Dashboard</title>
+    $style = @"
 <style>
-body { font-family: sans-serif; background: #1a1a2e; color: #eee; padding: 2em; }
-h1 { color: #0969DA; }
-table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-th, td { border: 1px solid #333; padding: 0.5em; text-align: left; }
-th { background: #16213e; }
+body { font-family: Segoe UI, Tahoma, Arial; background: #1a1a1a; color: #eee; padding: 20px; }
+h1 { color: #00ffcc; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; }
+.card { background: #2d2d2d; margin: 10px 0; padding: 15px; border-radius: 6px; border-left: 5px solid #555; }
+.CRITICAL { border-left-color: #ff4d4d; background: #3d1a1a; }
+.HIGH { border-left-color: #ffa500; }
+.MEDIUM { border-left-color: #ffd54f; background: #3a3520; }
+.LOW { border-left-color: #81c784; }
+.time { font-size: 12px; color: #aaa; }
+.msg { font-weight: bold; display: block; margin-top: 6px; }
 </style>
-</head>
-<body>
-<h1>AVA SECURITY DASHBOARD</h1>
-<table>
-<tr><th>Time</th><th>Severity</th><th>Message</th></tr>
-$($htmlBody -join "`n")
-</table>
-</body>
-</html>
 "@
-    $finalHtml | Set-Content "$ReportDir\report.html"
+
+    $body = foreach ($a in $items) {
+        $sev = [string]$a.severity
+        $msg = [System.Web.HttpUtility]::HtmlEncode([string]$a.message)
+        $tim = [System.Web.HttpUtility]::HtmlEncode([string]$a.time)
+
+        "<div class='card $sev'><span class='time'>$tim [$sev]</span><span class='msg'>$msg</span></div>"
+    }
+
+    $html = "<html><head>$style</head><body><h1>AVA SECURITY DASHBOARD</h1>$($body -join '')</body></html>"
+    Set-Content -Path (Join-Path $ReportDir "report.html") -Value $html -Encoding UTF8
 }
 
 # =========================
-# SCHEDULED TASK
+# TASK
 # =========================
-function Install-Task {
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$PSCommandPath`" -RunOnce"
+function Install-GuardianTask {
+    if (-not $PSCommandPath) {
+        throw "PSCommandPath ist leer. Script muss als .ps1 Datei gespeichert und per -File ausgeführt werden."
+    }
+
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -RunOnce"
     $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
-    $trigger.RepetitionInterval = (New-TimeSpan -Minutes 5)
+    $trigger.Repetition = (New-ScheduledTaskRepetitionSettings -Interval (New-TimeSpan -Minutes 5))
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -RunLevel Highest
 
-    Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Force
+    Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Force | Out-Null
+    Write-EventEntry -Category "task" -Message "Scheduled Task installiert: $TaskName"
+}
+
+function Remove-GuardianTask {
+    if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
+        Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+        Write-EventEntry -Category "task" -Message "Scheduled Task entfernt: $TaskName"
+    }
 }
 
 # =========================
 # MAIN
 # =========================
-if($RemoveTask){
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+if ($RemoveTask) {
+    Remove-GuardianTask
+    Write-Host "Task entfernt."
     exit
 }
 
-if(-not (Test-Path $BaselinePath)){
+if ($RollbackFirewall) {
+    Rollback-FirewallRules
+}
+
+if ($HardenRemoteServices) {
+    Invoke-RemoteServicesHardening
+}
+
+if (-not (Test-Path -LiteralPath $BaselinePath)) {
     Save-Baseline
 }
 
-Init-Canaries
-Check-Hash
+Initialize-Canaries
+Check-ScriptHash
 Check-Admins
 Check-Canaries
-Apply-FW
-Check-Network-Advanced
-Build-HTML
-Save-Hash
+Apply-FirewallRules
+Check-Network
+Scan-SuspiciousProcesses
+Build-HTMLReport
+Save-ScriptHash
 
-if($InstallTask){
-    Install-Task
+if ($InstallTask) {
+    Install-GuardianTask
 }
 
-Write-Host "AVA ELITE v2 DONE" -ForegroundColor Green
+Write-Host "AVA SecurityGuardian fertig. 🔐"
