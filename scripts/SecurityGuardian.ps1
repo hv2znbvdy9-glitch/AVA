@@ -195,7 +195,7 @@ function Scan-SuspiciousProcesses {
         $foundFlags = @()
 
         foreach($flag in $SuspiciousArgs) {
-            if($cmdLine -contains $flag) { $foundFlags += $flag }
+            if($cmdLine -like "*$flag*") { $foundFlags += $flag }
         }
 
         if($foundFlags.Count -ge 2 -or $cmdLine.Contains("-enc")) {
@@ -277,7 +277,7 @@ Check-Hash
 Check-Admins
 Check-Canaries
 Apply-FW
-Check-Network
+Check-Network-Advanced
 Build-HTML
 Save-Hash
 
