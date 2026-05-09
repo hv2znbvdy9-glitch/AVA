@@ -79,7 +79,7 @@ $Images = @(
 
 $ImageHtml = if ($Images.Count -gt 0) {
 	foreach ($img in $Images) {
-		$rel = "../Fotos/$([uri]::EscapeDataString($img.Name))"
+		$rel = "../Fotos/$([System.Uri]::EscapeDataString($img.Name))"
 @"
 <figure class="photo">
 	<img src="$rel" alt="$(H $img.BaseName)" loading="lazy">
