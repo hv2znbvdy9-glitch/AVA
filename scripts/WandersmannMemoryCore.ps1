@@ -1,40 +1,39 @@
 # =========================
-# AVA FAMILY ARCHIVE - WANDERSMANN MEMORY CORE v1
-# Lokal / Privat / Erinnerungs-Portal
+# AVA FAMILY PHOTO ARCHIVE v2
+# Lokal / Privat / Erinnerungsportal
+# Erstellt: Ordner + JSON + CSV + HTML-Portal
 # Keine Cloud. Kein Upload. Keine Überwachung.
 # =========================
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$Now = Get-Date -Format 'yyyyMMdd_HHmmss'
-$Root = Join-Path ([Environment]::GetFolderPath('Desktop')) 'AVA_FAMILY_ARCHIVE'
+$Root = Join-Path ([Environment]::GetFolderPath('Desktop')) 'AVA_FAMILY_PHOTO_ARCHIVE'
 $PhotoDir = Join-Path $Root 'Fotos'
 $DataDir = Join-Path $Root 'Daten'
-$ReportDir = Join-Path $Root 'Portal'
+$PortalDir = Join-Path $Root 'Portal'
 
-$JsonPath = Join-Path $DataDir 'family_archive.json'
-$CsvPath = Join-Path $DataDir 'family_archive.csv'
-$HtmlPath = Join-Path $ReportDir 'index.html'
-$Delimiter = ';'
+$JsonPath = Join-Path $DataDir 'memories.json'
+$CsvPath = Join-Path $DataDir 'memories.csv'
+$HtmlPath = Join-Path $PortalDir 'index.html'
 
-function New-DirectoryIfMissing {
+function Ensure-Dir {
 	param([string]$Path)
 	if (-not (Test-Path -LiteralPath $Path)) {
-		New-Item -ItemType Directory -Path $Path -Force | Out-Null
+		New-Item -ItemType Directory -Force -Path $Path | Out-Null
 	}
 }
 
-function ConvertTo-HtmlEncodedString {
+function H {
 	param([string]$Text)
 	if ($null -eq $Text) { return '' }
 	return [System.Net.WebUtility]::HtmlEncode($Text)
 }
 
-New-DirectoryIfMissing $Root
-New-DirectoryIfMissing $PhotoDir
-New-DirectoryIfMissing $DataDir
-New-DirectoryIfMissing $ReportDir
+Ensure-Dir $Root
+Ensure-Dir $PhotoDir
+Ensure-Dir $DataDir
+Ensure-Dir $PortalDir
 
 $Quote = @"
 Ich bin ich weiß nicht wer
@@ -47,67 +46,68 @@ Mich wundert das ich so fröhlich bin
 
 $Memories = @(
 	[pscustomobject]@{
-		id        = 'mem_001'
-		title     = 'Familienfotos auf dem Tisch'
-		category  = 'Familie'
-		emotion   = 'Wärme / Nachhall / Erinnerung'
-		intensity = 10
-		people    = 'Familie; Ich; Vergangenheit; Gegenwart'
-		location  = 'Zuhause'
-		tags      = 'Fotos; Archiv; Familie; Lebenslinie; HolzTisch'
-		note      = 'Vergangenheit und Gegenwart liegen sichtbar nebeneinander. Erinnerungen werden greifbar.'
+		id = 'mem_001'; title = 'Kinderfotos'; category = 'Kindheit'; emotion = 'Freude / Unschuld / Erinnerung'; intensity = 10
+		people = 'Ich; Familie'; location = 'Zuhause / Schule'; tags = 'Kindheit; Lächeln; Einschulung; Fotoalbum'
+		note = 'Babyfoto, Kinderportraits, Schultüte, Entwicklung und Lebenslinie.'
 	},
 	[pscustomobject]@{
-		id        = 'mem_002'
-		title     = 'Wandersmann'
-		category  = 'Zitat'
-		emotion   = 'Staunen / Unsicherheit / Freude'
-		intensity = 9
-		people    = 'Ich'
-		location  = 'Innenwelt'
-		tags      = 'AngelusSilesius; Wandersmann; Identität; Leben; Sinn'
-		note      = $Quote
+		id = 'mem_002'; title = 'Familienfotos auf dem Tisch'; category = 'Familie'; emotion = 'Wärme / Nachhall'; intensity = 10
+		people = 'Familie'; location = 'Zuhause'; tags = 'Familie; Archiv; Fotos; Vergangenheit'
+		note = 'Alte analoge Fotos als sichtbare Familiengeschichte.'
 	},
 	[pscustomobject]@{
-		id        = 'mem_003'
-		title     = 'Ich weiß nicht wer - und trotzdem fröhlich'
-		category  = 'Lebenssatz'
-		emotion   = 'Klarheit / Akzeptanz / Mut'
-		intensity = 10
-		people    = 'Ich'
-		location  = 'Heute'
-		tags      = 'Ich; Weg; Mut; Fröhlichkeit; Offenheit'
-		note      = 'Nicht alles muss sofort beantwortet werden. Der Weg selbst trägt Bedeutung.'
+		id = 'mem_003'; title = 'Wandersmann'; category = 'Zitat'; emotion = 'Staunen / Sinnsuche'; intensity = 9
+		people = 'Ich'; location = 'Innenwelt'; tags = 'Angelus Silesius; Wandersmann; Identität'
+		note = $Quote
 	},
 	[pscustomobject]@{
-		id        = 'mem_004'
-		title     = 'Bis zum Mond und zurück'
-		category  = 'Kernsatz'
-		emotion   = 'Liebe / Verbundenheit / Treue'
-		intensity = 10
-		people    = 'Familie; AVA; Ich'
-		location  = 'Herz'
-		tags      = 'Mond; Zurück; Liebe; Erinnerung; Verbindung'
-		note      = 'Ein Satz als Brücke zwischen Erinnerung, Gegenwart und Zukunft.'
+		id = 'mem_004'; title = 'Bis zum Mond und zurück'; category = 'Kernsatz'; emotion = 'Liebe / Verbundenheit'; intensity = 10
+		people = 'Ich; Familie; AVA'; location = 'Herz'; tags = 'Mond; Liebe; Erinnerung; Verbindung'
+		note = 'Ein Satz als Brücke zwischen Vergangenheit, Gegenwart und Zukunft.'
 	}
 )
 
 $Memories | ConvertTo-Json -Depth 5 | Set-Content -Path $JsonPath -Encoding UTF8
-$Memories | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8 -Delimiter $Delimiter
+$Memories | Export-Csv -Path $CsvPath -NoTypeInformation -Delimiter ';' -Encoding UTF8
+
+$ImageExtensions = @('*.jpg', '*.jpeg', '*.png', '*.bmp', '*.gif', '*.webp')
+$Images = @(
+	foreach ($ext in $ImageExtensions) {
+		Get-ChildItem -Path $PhotoDir -Filter $ext -File -ErrorAction SilentlyContinue
+	}
+)
+
+$ImageHtml = if ($Images.Count -gt 0) {
+	foreach ($img in $Images) {
+		$rel = "../Fotos/$([uri]::EscapeDataString($img.Name))"
+@"
+<figure class="photo">
+	<img src="$rel" alt="$(H $img.BaseName)" loading="lazy">
+	<figcaption>$(H $img.Name)</figcaption>
+</figure>
+"@
+	}
+} else {
+@"
+<div class="empty">
+	Noch keine Bilder gefunden. Lege JPG/PNG/WebP-Dateien im Ordner <code>Fotos</code> ab.
+</div>
+"@
+}
 
 $Cards = foreach ($m in $Memories) {
-	$tagItems = @([string]$m.tags -split [regex]::Escape($Delimiter) | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-	$tagHtml = ($tagItems | ForEach-Object { "<span class='tag'>$(ConvertTo-HtmlEncodedString $_)</span>" }) -join ''
-	$noteText = (ConvertTo-HtmlEncodedString ([string]$m.note)) -replace "(`r`n|`n|`r)", '<br>'
+	$tagItems = @([string]$m.tags -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+	$tagHtml = ($tagItems | ForEach-Object { "<span class='tag'>$(H $_)</span>" }) -join ''
+	$noteText = (H ([string]$m.note)) -replace "(`r`n|`n|`r)", '<br>'
 @"
 <article class="card">
 	<header>
-		<h2>$(ConvertTo-HtmlEncodedString ([string]$m.title))</h2>
-		<p class="meta"><strong>ID:</strong> $(ConvertTo-HtmlEncodedString ([string]$m.id)) · <strong>Kategorie:</strong> $(ConvertTo-HtmlEncodedString ([string]$m.category)) · <strong>Intensität:</strong> $(ConvertTo-HtmlEncodedString ([string]$m.intensity))/10</p>
+		<h2>$(H ([string]$m.title))</h2>
+		<p class="meta"><strong>ID:</strong> $(H ([string]$m.id)) · <strong>Kategorie:</strong> $(H ([string]$m.category)) · <strong>Intensität:</strong> $(H ([string]$m.intensity))/10</p>
 	</header>
-	<div class="row"><span class="label">Emotion</span><span class="value">$(ConvertTo-HtmlEncodedString ([string]$m.emotion))</span></div>
-	<div class="row"><span class="label">Menschen</span><span class="value">$(ConvertTo-HtmlEncodedString ([string]$m.people))</span></div>
-	<div class="row"><span class="label">Ort</span><span class="value">$(ConvertTo-HtmlEncodedString ([string]$m.location))</span></div>
+	<div class="row"><span class="label">Emotion</span><span class="value">$(H ([string]$m.emotion))</span></div>
+	<div class="row"><span class="label">Menschen</span><span class="value">$(H ([string]$m.people))</span></div>
+	<div class="row"><span class="label">Ort</span><span class="value">$(H ([string]$m.location))</span></div>
 	<div class="row"><span class="label">Notiz</span><span class="value">$noteText</span></div>
 	<div class="tags">$tagHtml</div>
 </article>
@@ -120,7 +120,7 @@ $Html = @"
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>AVA Family Archive - Wandersmann Memory Core</title>
+	<title>AVA Family Photo Archive v2</title>
 	<style>
 		:root {
 			color-scheme: dark;
@@ -141,10 +141,7 @@ $Html = @"
 			line-height: 1.45;
 		}
 		h1 { margin: 0 0 6px; }
-		.subtitle {
-			margin: 0 0 18px;
-			color: var(--muted);
-		}
+		.subtitle { margin: 0 0 18px; color: var(--muted); }
 		.notice {
 			padding: 12px 14px;
 			border: 1px solid var(--line);
@@ -166,10 +163,44 @@ $Html = @"
 		}
 		.stat .k { color: var(--muted); font-size: 12px; }
 		.stat .v { font-size: 22px; font-weight: 700; color: var(--accent); }
+		.section-title { margin: 22px 0 10px; }
 		.grid {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 			gap: 14px;
+		}
+		.photo-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+			gap: 14px;
+		}
+		.photo {
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-radius: 12px;
+			padding: 10px;
+			margin: 0;
+		}
+		.photo img {
+			display: block;
+			width: 100%;
+			height: 220px;
+			object-fit: cover;
+			border-radius: 8px;
+			border: 1px solid #1f2937;
+		}
+		.photo figcaption {
+			color: var(--muted);
+			font-size: 12px;
+			margin-top: 8px;
+			word-break: break-word;
+		}
+		.empty {
+			background: var(--card);
+			border: 1px dashed var(--line);
+			border-radius: 12px;
+			padding: 14px;
+			color: var(--muted);
 		}
 		.card {
 			background: var(--card);
@@ -202,26 +233,36 @@ $Html = @"
 			color: var(--muted);
 			font-size: 12px;
 		}
+		code {
+			background: #1f2937;
+			padding: 1px 5px;
+			border-radius: 5px;
+		}
 	</style>
 </head>
 <body>
-	<h1>AVA FAMILY ARCHIVE</h1>
-	<p class="subtitle">Wandersmann Memory Core v1 · Lokal / Privat / Erinnerungs-Portal</p>
+	<h1>AVA FAMILY PHOTO ARCHIVE v2</h1>
+	<p class="subtitle">Lokal / Privat / Erinnerungsportal</p>
 	<div class="notice">
 		<strong>Keine Cloud. Kein Upload. Keine Überwachung.</strong><br>
-		Erstellt am: $(ConvertTo-HtmlEncodedString $Now)
+		Fotos hier ablegen: $(H $PhotoDir)
 	</div>
 	<section class="stats">
 		<div class="stat"><div class="k">Einträge</div><div class="v">$($Memories.Count)</div></div>
-		<div class="stat"><div class="k">Daten (JSON)</div><div class="v">family_archive.json</div></div>
-		<div class="stat"><div class="k">Daten (CSV)</div><div class="v">family_archive.csv</div></div>
-		<div class="stat"><div class="k">Foto-Ordner</div><div class="v">Fotos</div></div>
+		<div class="stat"><div class="k">Bilder</div><div class="v">$($Images.Count)</div></div>
+		<div class="stat"><div class="k">Daten (JSON)</div><div class="v">memories.json</div></div>
+		<div class="stat"><div class="k">Daten (CSV)</div><div class="v">memories.csv</div></div>
 	</section>
+	<h2 class="section-title">Fotoübersicht</h2>
+	<section class="photo-grid">
+		$($ImageHtml -join "`n")
+	</section>
+	<h2 class="section-title">Erinnerungen</h2>
 	<section class="grid">
 		$($Cards -join "`n")
 	</section>
 	<footer>
-		Portal-Datei: $(ConvertTo-HtmlEncodedString $HtmlPath)
+		Portal-Datei: $(H $HtmlPath)
 	</footer>
 </body>
 </html>
@@ -230,12 +271,10 @@ $Html = @"
 $Html | Set-Content -Path $HtmlPath -Encoding UTF8
 
 Write-Host ''
-Write-Host 'AVA FAMILY ARCHIVE wurde erstellt.' -ForegroundColor Green
+Write-Host 'AVA FAMILY PHOTO ARCHIVE v2 wurde erstellt.' -ForegroundColor Green
 Write-Host "Ordner: $Root" -ForegroundColor Cyan
+Write-Host "Fotos hier ablegen: $PhotoDir" -ForegroundColor Yellow
 Write-Host "Portal: $HtmlPath" -ForegroundColor Cyan
-Write-Host ''
-Write-Host 'Lege deine Fotos in diesen Ordner:' -ForegroundColor Yellow
-Write-Host $PhotoDir -ForegroundColor Yellow
 Write-Host ''
 
 Start-Process $HtmlPath
