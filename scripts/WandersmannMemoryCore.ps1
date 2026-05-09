@@ -16,24 +16,25 @@ $ReportDir = Join-Path $Root 'Portal'
 $JsonPath = Join-Path $DataDir 'family_archive.json'
 $CsvPath = Join-Path $DataDir 'family_archive.csv'
 $HtmlPath = Join-Path $ReportDir 'index.html'
+$Delimiter = ';'
 
-function Ensure-Dir {
+function New-DirectoryIfMissing {
 	param([string]$Path)
 	if (-not (Test-Path -LiteralPath $Path)) {
 		New-Item -ItemType Directory -Path $Path -Force | Out-Null
 	}
 }
 
-function HtmlEncode {
+function ConvertTo-HtmlEncodedString {
 	param([string]$Text)
 	if ($null -eq $Text) { return '' }
 	return [System.Net.WebUtility]::HtmlEncode($Text)
 }
 
-Ensure-Dir $Root
-Ensure-Dir $PhotoDir
-Ensure-Dir $DataDir
-Ensure-Dir $ReportDir
+New-DirectoryIfMissing $Root
+New-DirectoryIfMissing $PhotoDir
+New-DirectoryIfMissing $DataDir
+New-DirectoryIfMissing $ReportDir
 
 $Quote = @"
 Ich bin ich weiß nicht wer
@@ -92,21 +93,21 @@ $Memories = @(
 )
 
 $Memories | ConvertTo-Json -Depth 5 | Set-Content -Path $JsonPath -Encoding UTF8
-$Memories | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8 -Delimiter ';'
+$Memories | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8 -Delimiter $Delimiter
 
 $Cards = foreach ($m in $Memories) {
-	$tagItems = @([string]$m.tags -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-	$tagHtml = ($tagItems | ForEach-Object { "<span class='tag'>$(HtmlEncode $_)</span>" }) -join ''
-	$noteText = (HtmlEncode ([string]$m.note)) -replace "(`r`n|`n|`r)", '<br>'
+	$tagItems = @([string]$m.tags -split [regex]::Escape($Delimiter) | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+	$tagHtml = ($tagItems | ForEach-Object { "<span class='tag'>$(ConvertTo-HtmlEncodedString $_)</span>" }) -join ''
+	$noteText = (ConvertTo-HtmlEncodedString ([string]$m.note)) -replace "(`r`n|`n|`r)", '<br>'
 @"
 <article class="card">
 	<header>
-		<h2>$(HtmlEncode ([string]$m.title))</h2>
-		<p class="meta"><strong>ID:</strong> $(HtmlEncode ([string]$m.id)) · <strong>Kategorie:</strong> $(HtmlEncode ([string]$m.category)) · <strong>Intensität:</strong> $(HtmlEncode ([string]$m.intensity))/10</p>
+		<h2>$(ConvertTo-HtmlEncodedString ([string]$m.title))</h2>
+		<p class="meta"><strong>ID:</strong> $(ConvertTo-HtmlEncodedString ([string]$m.id)) · <strong>Kategorie:</strong> $(ConvertTo-HtmlEncodedString ([string]$m.category)) · <strong>Intensität:</strong> $(ConvertTo-HtmlEncodedString ([string]$m.intensity))/10</p>
 	</header>
-	<div class="row"><span class="label">Emotion</span><span class="value">$(HtmlEncode ([string]$m.emotion))</span></div>
-	<div class="row"><span class="label">Menschen</span><span class="value">$(HtmlEncode ([string]$m.people))</span></div>
-	<div class="row"><span class="label">Ort</span><span class="value">$(HtmlEncode ([string]$m.location))</span></div>
+	<div class="row"><span class="label">Emotion</span><span class="value">$(ConvertTo-HtmlEncodedString ([string]$m.emotion))</span></div>
+	<div class="row"><span class="label">Menschen</span><span class="value">$(ConvertTo-HtmlEncodedString ([string]$m.people))</span></div>
+	<div class="row"><span class="label">Ort</span><span class="value">$(ConvertTo-HtmlEncodedString ([string]$m.location))</span></div>
 	<div class="row"><span class="label">Notiz</span><span class="value">$noteText</span></div>
 	<div class="tags">$tagHtml</div>
 </article>
@@ -208,7 +209,7 @@ $Html = @"
 	<p class="subtitle">Wandersmann Memory Core v1 · Lokal / Privat / Erinnerungs-Portal</p>
 	<div class="notice">
 		<strong>Keine Cloud. Kein Upload. Keine Überwachung.</strong><br>
-		Erstellt am: $(HtmlEncode $Now)
+		Erstellt am: $(ConvertTo-HtmlEncodedString $Now)
 	</div>
 	<section class="stats">
 		<div class="stat"><div class="k">Einträge</div><div class="v">$($Memories.Count)</div></div>
@@ -220,7 +221,7 @@ $Html = @"
 		$($Cards -join "`n")
 	</section>
 	<footer>
-		Portal-Datei: $(HtmlEncode $HtmlPath)
+		Portal-Datei: $(ConvertTo-HtmlEncodedString $HtmlPath)
 	</footer>
 </body>
 </html>
