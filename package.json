@@ -6,10 +6,10 @@
   "bin": {
     "ava": "./bin/cli.js"
   },
-  "scripts": {
-    "start": "node src/index.js",
-    "test": "node test/run.test.js && node test/color.test.js"
-  },
+	"scripts": {
+		"start": "node src/index.js",
+		"test": "node test/run.test.js && node test/color.test.js && node test/scripts.test.js"
+	},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hv2znbvdy9-glitch/AVA.git"
