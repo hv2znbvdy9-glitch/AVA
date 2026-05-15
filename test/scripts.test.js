@@ -50,7 +50,7 @@ test('AVA SOC Portal V5 script should not contain pasted template artifacts', ()
 	assert.ok(!scriptContents.includes('2&gt;&amp;1'));
 });
 
-test('AVA SOC Portal V5 portal template should close the alerts table before the next section', () => {
+test('AVA SOC Portal V5 script should close the alerts table before the next section', () => {
 	assert.ok(scriptContents.includes('<h2>Alerts</h2>'));
 	assert.ok(scriptContents.includes('</tbody></table>\n</div>\n\n<div class="section card">\n<h2>Firewall Profiles</h2>'));
 });

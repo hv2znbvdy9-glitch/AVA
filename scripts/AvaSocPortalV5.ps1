@@ -147,7 +147,7 @@ function Add-Alert {
 
 function Get-WlanNetworksSafe {
     try {
-        $raw = netsh wlan show networks mode=bssid 2>&1 | Out-String
+        $raw = netsh wlan show networks mode=BSSID 2>&1 | Out-String
     } catch {
         return @([pscustomobject]@{ Error = $_.Exception.Message })
     }
