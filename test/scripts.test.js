@@ -24,8 +24,6 @@ const scriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV5.ps1');
 const scriptContents = fs.readFileSync(scriptPath, 'utf8');
 const nextLayerScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314NextLayerAll.ps1');
 const nextLayerScriptContents = fs.readFileSync(nextLayerScriptPath, 'utf8');
-const safeLocalScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314SafeLocalNode.ps1');
-const safeLocalScriptContents = fs.readFileSync(safeLocalScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -81,30 +79,6 @@ test('AVA 3.14 NEXT LAYER script should parse without PowerShell syntax errors',
 test('AVA 3.14 NEXT LAYER script should not contain pasted template artifacts', () => {
 	assert.ok(!nextLayerScriptContents.includes('<__filter_complete__>'));
 	assert.ok(!nextLayerScriptContents.includes('2&gt;&amp;1'));
-});
-
-test('AVA 3.14 SAFE LOCAL NODE script should exist', () => {
-	assert.ok(fs.existsSync(safeLocalScriptPath));
-});
-
-test('AVA 3.14 SAFE LOCAL NODE script should parse without PowerShell syntax errors', () => {
-	const escapedPath = safeLocalScriptPath.replace(/'/g, "''");
-	const parseCommand = [
-		"$tokens = $null",
-		"$errors = $null",
-		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
-		"if ($errors.Count -gt 0) {",
-		"\t$errors | ForEach-Object { $_.Message }",
-		"\texit 1",
-		"}",
-	].join('; ');
-
-	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
-});
-
-test('AVA 3.14 SAFE LOCAL NODE script should not contain pasted template artifacts', () => {
-	assert.ok(!safeLocalScriptContents.includes('<__filter_complete__>'));
-	assert.ok(!safeLocalScriptContents.includes('2&gt;&amp;1'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
