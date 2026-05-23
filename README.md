@@ -16,10 +16,6 @@ npm install
 npx ava "echo hello"
 ```
 
-```bash
-npx ava --safe-local-node
-```
-
 ### As a library
 
 ```js
@@ -29,14 +25,6 @@ const result = run('echo hello', { silent: true });
 console.log(result.stdout); // "hello\n"
 console.log(result.stderr); // ""
 console.log(result.exitCode); // 0
-```
-
-```js
-const { runSafeLocalNode } = require('ava');
-
-const result = runSafeLocalNode();
-console.log(result.paths.snapshotJson);
-console.log(result.paths.portalHtml);
 ```
 
 ### Options
