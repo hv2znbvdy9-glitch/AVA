@@ -26,6 +26,8 @@ const nextLayerScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314NextLay
 const nextLayerScriptContents = fs.readFileSync(nextLayerScriptPath, 'utf8');
 const safeLocalScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314SafeLocalNode.ps1');
 const safeLocalScriptContents = fs.readFileSync(safeLocalScriptPath, 'utf8');
+const wlanSensorScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_WLAN_TANGLE_SENSOR.ps1');
+const wlanSensorScriptContents = fs.readFileSync(wlanSensorScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -105,6 +107,32 @@ test('AVA 3.14 SAFE LOCAL NODE script should parse without PowerShell syntax err
 test('AVA 3.14 SAFE LOCAL NODE script should not contain pasted template artifacts', () => {
 	assert.ok(!safeLocalScriptContents.includes('<__filter_complete__>'));
 	assert.ok(!safeLocalScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA WLAN TANGLE SENSOR script should exist', () => {
+	assert.ok(fs.existsSync(wlanSensorScriptPath));
+});
+
+test('AVA WLAN TANGLE SENSOR script should parse without PowerShell syntax errors', () => {
+	const escapedPath = wlanSensorScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA WLAN TANGLE SENSOR script should define defensive WLAN collection outputs', () => {
+	assert.ok(wlanSensorScriptContents.includes("netsh wlan show networks mode=bssid"));
+	assert.ok(wlanSensorScriptContents.includes("Get-NetNeighbor -AddressFamily IPv4"));
+	assert.ok(wlanSensorScriptContents.includes("ava_wlan_guardian_v1.html"));
+	assert.ok(wlanSensorScriptContents.includes("AVA_WLAN_GUARDIAN_V1"));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
