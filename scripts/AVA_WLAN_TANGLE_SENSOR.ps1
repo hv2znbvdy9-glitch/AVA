@@ -173,6 +173,40 @@ function Get-WlanNetworksSafe {
 	return $items
 }
 
+function Get-ArpNeighborsSafe {
+	try {
+		$raw = arp -a 2>&1 | Out-String
+	} catch {
+		return @([pscustomobject]@{ Error = $_.Exception.Message })
+	}
+
+	$items = New-Object System.Collections.Generic.List[object]
+	$currentInterface = $null
+
+	foreach ($line in ($raw -split "`r?`n")) {
+		$l = $line.Trim()
+
+		if ($l -match '^Interface:\s+([0-9a-f\.:]+)\s+---\s+(.*)$') {
+			$currentInterface = [pscustomobject]@{
+				InterfaceAddress = $Matches[1]
+				InterfaceAlias   = $Matches[2]
+			}
+		}
+		elseif ($l -match '^([0-9\.]+)\s+([0-9a-f\-]+)\s+(\w+)$') {
+			$items.Add([pscustomobject]@{
+				InterfaceAddress = if ($currentInterface) { $currentInterface.InterfaceAddress } else { $null }
+				InterfaceAlias   = if ($currentInterface) { $currentInterface.InterfaceAlias } else { $null }
+				IPAddress        = $Matches[1]
+				LinkLayerAddress = $Matches[2]
+				Type             = $Matches[3]
+				Source           = 'ARP'
+			}) | Out-Null
+		}
+	}
+
+	return $items
+}
+
 function Get-LocalNetworkSnapshot {
 	$adapters = try {
 		Get-NetAdapter |
@@ -191,15 +225,18 @@ function Get-LocalNetworkSnapshot {
 	$neighbors = try {
 		Get-NetNeighbor -AddressFamily IPv4 |
 			Where-Object { $_.State -ne 'Unreachable' } |
-			Select-Object InterfaceAlias, IPAddress, LinkLayerAddress, State
+			Select-Object InterfaceAlias, IPAddress, LinkLayerAddress, State, @{ Name = 'Source'; Expression = { 'NetNeighbor' } }
 	} catch {
 		@([pscustomobject]@{ Error = $_.Exception.Message })
 	}
 
+	$arpNeighbors = Get-ArpNeighborsSafe
+
 	return [ordered]@{
-		adapters  = $adapters
-		ipconfig  = $ipconfig
-		neighbors = $neighbors
+		adapters      = $adapters
+		ipconfig      = $ipconfig
+		neighbors     = $neighbors
+		arp_neighbors = $arpNeighbors
 	}
 }
 
@@ -366,7 +403,8 @@ function New-Portal {
 	$wlanRows = Make-Rows -Items (@($Snapshot.wlan) | Select-Object -First 100) -Props @('SSID', 'BSSID', 'Authentication', 'Encryption', 'Signal', 'RadioType', 'Channel')
 	$adapterRows = Make-Rows -Items (@($Snapshot.network.adapters) | Select-Object -First 100) -Props @('Name', 'InterfaceDescription', 'Status', 'MacAddress', 'LinkSpeed')
 	$ipRows = Make-Rows -Items (@($Snapshot.network.ipconfig) | Select-Object -First 100) -Props @('InterfaceAlias', 'IPv4Address', 'IPv6Address', 'IPv4DefaultGateway', 'DNSServer')
-	$neighborRows = Make-Rows -Items (@($Snapshot.network.neighbors) | Select-Object -First 100) -Props @('InterfaceAlias', 'IPAddress', 'LinkLayerAddress', 'State')
+	$neighborRows = Make-Rows -Items (@($Snapshot.network.neighbors) | Select-Object -First 100) -Props @('InterfaceAlias', 'IPAddress', 'LinkLayerAddress', 'State', 'Source')
+	$arpNeighborRows = Make-Rows -Items (@($Snapshot.network.arp_neighbors) | Select-Object -First 100) -Props @('InterfaceAddress', 'InterfaceAlias', 'IPAddress', 'LinkLayerAddress', 'Type', 'Source')
 
 @"
 <!doctype html>
@@ -403,8 +441,11 @@ $($adapterRows -join "`n")
 <div class="card"><h2>IP Configuration</h2><table><tbody><tr><th>Interface</th><th>IPv4</th><th>IPv6</th><th>Gateway</th><th>DNS</th></tr>
 $($ipRows -join "`n")
 </tbody></table></div>
-<div class="card"><h2>LAN Neighbors</h2><table><tbody><tr><th>Interface</th><th>IP</th><th>MAC</th><th>State</th></tr>
+<div class="card"><h2>LAN Neighbors</h2><table><tbody><tr><th>Interface</th><th>IP</th><th>MAC</th><th>State</th><th>Source</th></tr>
 $($neighborRows -join "`n")
+</tbody></table></div>
+<div class="card"><h2>ARP Cache</h2><table><tbody><tr><th>Interface Address</th><th>Interface Alias</th><th>IP</th><th>MAC</th><th>Type</th><th>Source</th></tr>
+$($arpNeighborRows -join "`n")
 </tbody></table></div>
 </body>
 </html>

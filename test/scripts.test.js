@@ -130,6 +130,7 @@ test('AVA WLAN TANGLE SENSOR script should parse without PowerShell syntax error
 
 test('AVA WLAN TANGLE SENSOR script should define defensive WLAN collection outputs', () => {
 	assert.ok(wlanSensorScriptContents.includes("netsh wlan show networks mode=bssid"));
+	assert.ok(wlanSensorScriptContents.includes("arp -a"));
 	assert.ok(wlanSensorScriptContents.includes("Get-NetNeighbor -AddressFamily IPv4"));
 	assert.ok(wlanSensorScriptContents.includes("ava_wlan_guardian_v1.html"));
 	assert.ok(wlanSensorScriptContents.includes("AVA_WLAN_GUARDIAN_V1"));
