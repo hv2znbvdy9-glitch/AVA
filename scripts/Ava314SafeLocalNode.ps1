@@ -156,6 +156,7 @@ param(
 [string]$EmptyText = 'Keine Daten gefunden.'
 )
 
+$colSpan = [Math]::Max(@($Props).Count, 1)
 $rows = foreach ($item in @($Items)) {
 $tds = foreach ($p in $Props) {
 "<td>$(HtmlEncode $item.$p)</td>"
@@ -164,7 +165,7 @@ $tds = foreach ($p in $Props) {
 }
 
 if (-not $rows) {
-return "<tr><td colspan='8' style='color:#8fa3ad;'>$(HtmlEncode $EmptyText)</td></tr>"
+return "<tr><td colspan='$colSpan' style='color:#8fa3ad;'>$(HtmlEncode $EmptyText)</td></tr>"
 }
 
 return $rows
@@ -570,48 +571,273 @@ $Html = @"
 <meta http-equiv="refresh" content="60">
 <title>AVA 3.14 SAFE LOCAL NODE</title>
 <style>
-body{font-family:Consolas,"Segoe UI",monospace;background:#05080c;color:#eaf6ff;padding:30px}
-.card{background:#0c1520dd;border:1px solid #17384f;padding:16px;margin:12px 0}
-.big{font-size:30px;color:#22a7ff}
-table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top;font-size:12px}
-th{color:#22a7ff}
-.status-OK{color:#19ff8f}.status-WARN{color:#ffcc66}.status-HIGH,.status-CRITICAL{color:#ff5d6c}
-.hash{word-break:break-all;color:#8fa3ad}
+:root{
+--bg:#05080c;
+--panel:#0c1520dd;
+--line:#17384f;
+--green:#19ff8f;
+--blue:#22a7ff;
+--text:#eaf6ff;
+--muted:#8fa3ad;
+--warn:#ffcc66;
+--danger:#ff5d6c;
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+padding:34px;
+background:
+linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
+radial-gradient(circle at top,#102033 0%,#05080c 60%);
+background-size:60px 60px,60px 60px,cover;
+color:var(--text);
+font-family:Consolas,"Segoe UI",monospace;
+}
+.frame{
+border:1px solid rgba(25,255,143,.35);
+padding:26px;
+min-height:92vh;
+box-shadow:0 0 35px rgba(25,255,143,.08);
+}
+.topbar{
+display:flex;
+justify-content:space-between;
+border-bottom:1px solid var(--line);
+padding-bottom:18px;
+margin-bottom:30px;
+gap:12px;
+flex-wrap:wrap;
+}
+.badge{
+border:1px solid rgba(25,255,143,.45);
+color:var(--green);
+padding:8px 14px;
+letter-spacing:3px;
+font-size:12px;
+}
+h1{
+font-size:48px;
+margin:10px 0 4px 0;
+letter-spacing:3px;
+line-height:1;
+}
+h1 span{color:var(--blue)}
+.subtitle{
+color:var(--muted);
+letter-spacing:4px;
+font-size:12px;
+}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:16px;
+margin:26px 0;
+}
+.card{
+background:var(--panel);
+border:1px solid var(--line);
+padding:16px;
+box-shadow:inset 0 0 22px rgba(34,167,255,.04);
+overflow:auto;
+}
+.card h2{
+color:var(--green);
+font-size:13px;
+letter-spacing:3px;
+margin:0 0 12px 0;
+text-transform:uppercase;
+}
+.big{
+font-size:30px;
+color:var(--blue);
+font-weight:bold;
+}
+.small{
+color:var(--muted);
+font-size:12px;
+}
+.section{margin-top:24px}
+.table-wrap{overflow-x:auto}
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+th,td{
+padding:8px;
+border-bottom:1px solid rgba(255,255,255,.07);
+text-align:left;
+vertical-align:top;
+font-size:12px;
+}
+th{
+color:var(--blue);
+text-transform:uppercase;
+letter-spacing:1px;
+}
+pre{
+white-space:pre-wrap;
+word-break:break-word;
+color:#d8f5ff;
+}
+.legal{
+border-left:4px solid var(--green);
+background:rgba(25,255,143,.06);
+padding:16px;
+color:#bfffdc;
+}
+.hash{
+word-break:break-all;
+color:var(--muted);
+font-size:12px;
+}
+.footer{
+margin-top:30px;
+padding-top:18px;
+border-top:1px solid var(--line);
+color:var(--muted);
+display:flex;
+justify-content:space-between;
+gap:14px;
+flex-wrap:wrap;
+font-size:12px;
+letter-spacing:2px;
+}
+.status-OK{color:var(--green)}
+.status-WARN{color:var(--warn)}
+.status-HIGH,.status-CRITICAL{color:var(--danger)}
 </style>
 </head>
 <body>
-<div class="card"><b>AVA 3.14 SAFE LOCAL NODE</b> · LOCAL / DEFENSIVE / READ-ONLY</div>
-<div class="card"><div class="big status-$health">$health</div><div>Score: $score · Alerts: $($Analysis.alert_count)</div></div>
-<div class="card"><b>Kernsatz:</b> $(HtmlEncode $Analysis.core_sentence)</div>
-<div class="card"><b>Tangle Last Hash:</b><div class="hash">$(HtmlEncode $lastHash)</div></div>
-<div class="card"><h2>Alerts</h2><table><tbody><tr><th>Severity</th><th>Title</th><th>Message</th><th>Score</th><th>Time</th></tr>
+<div class="frame">
+
+<div class="topbar">
+<div class="badge">AVA 3.14 SAFE LOCAL NODE</div>
+<div class="badge">LOCAL / DEFENSIVE / READ-ONLY</div>
+</div>
+
+<div>
+<div class="subtitle">// UNIFIED LOCAL DEFENSIVE VISIBILITY</div>
+<h1>AVA <span>3.14</span></h1>
+<div class="subtitle">SOC · MEMORY LINK · TANGLE · BASELINE · DELTA · HUD PORTAL</div>
+</div>
+
+<div class="grid">
+<div class="card"><h2>Health</h2><div class="big status-$health">$health</div><div class="small">Score: $score</div></div>
+<div class="card"><h2>Alerts</h2><div class="big">$($Analysis.alert_count)</div><div class="small">Risk Events</div></div>
+<div class="card"><h2>Connections</h2><div class="big">$(@($Snapshot.connections).Count)</div><div class="small">Established TCP</div></div>
+<div class="card"><h2>Processes</h2><div class="big">$(@($Snapshot.processes).Count)</div><div class="small">Local Processes</div></div>
+<div class="card"><h2>WLAN</h2><div class="big">$(@($Snapshot.wlan).Count)</div><div class="small">Visible BSSID</div></div>
+<div class="card"><h2>Neighbors</h2><div class="big">$(@($Snapshot.network.neighbors).Count)</div><div class="small">LAN / ARP</div></div>
+</div>
+
+<div class="section legal">
+<b>Kernsatz:</b> $(HtmlEncode $Analysis.core_sentence)<br>
+Dieses System ist lokal, defensiv und read-only. Keine Angriffe, keine Exploits, keine fremden Ziele, kein Auto-Spread.
+</div>
+
+<div class="section card">
+<h2>Memory ↔ Alert Engine</h2>
+<pre>Memory: "AVA / System"
+        ↕
+Alert: powershell.exe / Netzwerk / Prozess</pre>
+</div>
+
+<div class="section card">
+<h2>Tangle Hash Chain</h2>
+<div class="small">Letzter Hash:</div>
+<div class="hash">$(HtmlEncode $lastHash)</div>
+</div>
+
+<div class="section card">
+<h2>Alerts</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Severity</th><th>Title</th><th>Message</th><th>Score</th><th>Time</th></tr>
 $($alertRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>Firewall Profiles</h2><table><tbody><tr><th>Name</th><th>Enabled</th><th>Inbound</th><th>Outbound</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>Firewall Profiles</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Name</th><th>Enabled</th><th>Inbound</th><th>Outbound</th></tr>
 $($fwRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>Established Connections</h2><table><tbody><tr><th>Process</th><th>PID</th><th>Local</th><th>LPort</th><th>Remote</th><th>RPort</th><th>State</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>Established Connections</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Process</th><th>PID</th><th>Local</th><th>LPort</th><th>Remote</th><th>RPort</th><th>State</th></tr>
 $($connRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>Process View</h2><table><tbody><tr><th>Name</th><th>PID</th><th>PPID</th><th>Path</th><th>CommandLine</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>Process View</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Name</th><th>PID</th><th>PPID</th><th>Path</th><th>CommandLine</th></tr>
 $($procRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>WLAN View</h2><table><tbody><tr><th>SSID</th><th>BSSID</th><th>Auth</th><th>Encryption</th><th>Signal</th><th>Radio</th><th>Channel</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>WLAN View</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>SSID</th><th>BSSID</th><th>Auth</th><th>Encryption</th><th>Signal</th><th>Radio</th><th>Channel</th></tr>
 $($wlanRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>LAN Neighbors</h2><table><tbody><tr><th>Interface</th><th>IP</th><th>MAC</th><th>State</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>LAN Neighbors</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Interface</th><th>IP</th><th>MAC</th><th>State</th></tr>
 $($neighborRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>Local Admins</h2><table><tbody><tr><th>Name</th><th>Class</th><th>Source</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>Local Admins</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Name</th><th>Class</th><th>Source</th></tr>
 $($adminRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>Non-Microsoft Scheduled Tasks</h2><table><tbody><tr><th>Name</th><th>Path</th><th>State</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>Non-Microsoft Scheduled Tasks</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Name</th><th>Path</th><th>State</th></tr>
 $($taskRows -join "`n")
-</tbody></table></div>
-<div class="card"><h2>Running Services</h2><table><tbody><tr><th>Name</th><th>DisplayName</th><th>State</th><th>StartMode</th><th>StartName</th></tr>
+</tbody></table>
+</div>
+</div>
+
+<div class="section card">
+<h2>Running Services</h2>
+<div class="table-wrap">
+<table><tbody><tr><th>Name</th><th>DisplayName</th><th>State</th><th>StartMode</th><th>StartName</th></tr>
 $($serviceRows -join "`n")
-</tbody></table></div>
+</tbody></table>
+</div>
+</div>
+
+<div class="footer">
+<span>PRINCIPLES: LOCAL / DEFENSIVE / READ-ONLY / NO AUTO-SPREAD</span>
+<span>COMPUTER: $(HtmlEncode $Snapshot.computer)</span>
+<span>TIME: $(HtmlEncode $Snapshot.time)</span>
+</div>
+
+</div>
 </body>
 </html>
 "@
