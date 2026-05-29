@@ -28,6 +28,8 @@ const safeLocalScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314SafeLoc
 const safeLocalScriptContents = fs.readFileSync(safeLocalScriptPath, 'utf8');
 const wlanSensorScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_WLAN_TANGLE_SENSOR.ps1');
 const wlanSensorScriptContents = fs.readFileSync(wlanSensorScriptPath, 'utf8');
+const coreStackScriptPath = path.join(__dirname, '..', 'scripts', 'AvaCoreStack.ps1');
+const coreStackScriptContents = fs.readFileSync(coreStackScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -134,6 +136,39 @@ test('AVA WLAN TANGLE SENSOR script should define defensive WLAN collection outp
 	assert.ok(wlanSensorScriptContents.includes("Get-NetNeighbor -AddressFamily IPv4"));
 	assert.ok(wlanSensorScriptContents.includes("ava_wlan_guardian_v1.html"));
 	assert.ok(wlanSensorScriptContents.includes("AVA_WLAN_GUARDIAN_V1"));
+});
+
+test('AVA CORE STACK script should exist', () => {
+	assert.ok(fs.existsSync(coreStackScriptPath));
+});
+
+test('AVA CORE STACK script should parse without PowerShell syntax errors', () => {
+	const escapedPath = coreStackScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA CORE STACK script should not contain pasted template artifacts', () => {
+	assert.ok(!coreStackScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!coreStackScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA CORE STACK script should define core defensive functions', () => {
+	assert.ok(coreStackScriptContents.includes('function Get-DefenderInfo'));
+	assert.ok(coreStackScriptContents.includes('function Write-TangleEvent'));
+	assert.ok(coreStackScriptContents.includes('function New-Snapshot'));
+	assert.ok(coreStackScriptContents.includes('function Compare-WithBaseline'));
+	assert.ok(coreStackScriptContents.includes('function Build-Portal'));
+	assert.ok(coreStackScriptContents.includes('ava_core_portal.html'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
