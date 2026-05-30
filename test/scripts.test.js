@@ -171,5 +171,126 @@ test('AVA CORE STACK script should define core defensive functions', () => {
 	assert.ok(coreStackScriptContents.includes('ava_core_portal.html'));
 });
 
+// ---------------------------------------------------------------------------
+// AVA SOC Portal V6 — Safe Graph Engine
+// ---------------------------------------------------------------------------
+
+const v6ScriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV6.ps1');
+const v6ScriptContents = fs.readFileSync(v6ScriptPath, 'utf8');
+
+test('AVA SOC Portal V6 script should exist', () => {
+	assert.ok(fs.existsSync(v6ScriptPath));
+});
+
+test('AVA SOC Portal V6 script should parse without PowerShell syntax errors', () => {
+	const escapedPath = v6ScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA SOC Portal V6 script should not contain pasted template artifacts', () => {
+	assert.ok(!v6ScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!v6ScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA SOC Portal V6 script should define Timeline Engine and Heatmap features', () => {
+	assert.ok(v6ScriptContents.includes('function New-TimelineEvent'));
+	assert.ok(v6ScriptContents.includes('function Build-HeatmapHtml'));
+	assert.ok(v6ScriptContents.includes('function Build-TimelineHtml'));
+	assert.ok(v6ScriptContents.includes('ava_soc_portal_v6.html'));
+	assert.ok(v6ScriptContents.includes('AVA SOC PORTAL V6'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA SOC Portal V7 — Safe Memory Layer
+// ---------------------------------------------------------------------------
+
+const v7ScriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV7.ps1');
+const v7ScriptContents = fs.readFileSync(v7ScriptPath, 'utf8');
+
+test('AVA SOC Portal V7 script should exist', () => {
+	assert.ok(fs.existsSync(v7ScriptPath));
+});
+
+test('AVA SOC Portal V7 script should parse without PowerShell syntax errors', () => {
+	const escapedPath = v7ScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA SOC Portal V7 script should not contain pasted template artifacts', () => {
+	assert.ok(!v7ScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!v7ScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA SOC Portal V7 script should define Memory Layer and Correlation Engine features', () => {
+	assert.ok(v7ScriptContents.includes('function Get-AutoTags'));
+	assert.ok(v7ScriptContents.includes('function Get-CorrelationGroups'));
+	assert.ok(v7ScriptContents.includes('function Add-MemoryEntry'));
+	assert.ok(v7ScriptContents.includes('function Load-Memory'));
+	assert.ok(v7ScriptContents.includes('function Save-Memory'));
+	assert.ok(v7ScriptContents.includes('ava_soc_portal_v7.html'));
+	assert.ok(v7ScriptContents.includes('AVA SOC PORTAL V7'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA Baseline Drift Detection
+// ---------------------------------------------------------------------------
+
+const driftScriptPath = path.join(__dirname, '..', 'scripts', 'AvaBaselineDrift.ps1');
+const driftScriptContents = fs.readFileSync(driftScriptPath, 'utf8');
+
+test('AVA Baseline Drift script should exist', () => {
+	assert.ok(fs.existsSync(driftScriptPath));
+});
+
+test('AVA Baseline Drift script should parse without PowerShell syntax errors', () => {
+	const escapedPath = driftScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA Baseline Drift script should not contain pasted template artifacts', () => {
+	assert.ok(!driftScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!driftScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA Baseline Drift script should define core drift detection functions', () => {
+	assert.ok(driftScriptContents.includes('function New-BaselineSnapshot'));
+	assert.ok(driftScriptContents.includes('function Save-Baseline'));
+	assert.ok(driftScriptContents.includes('function Load-Baseline'));
+	assert.ok(driftScriptContents.includes('function Compare-Snapshots'));
+	assert.ok(driftScriptContents.includes('function New-DriftReport'));
+	assert.ok(driftScriptContents.includes('ava_baseline_drift.html'));
+	assert.ok(driftScriptContents.includes('AVA BASELINE DRIFT'));
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
