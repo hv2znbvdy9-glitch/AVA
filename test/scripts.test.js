@@ -30,6 +30,8 @@ const wlanSensorScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_WLAN_TAN
 const wlanSensorScriptContents = fs.readFileSync(wlanSensorScriptPath, 'utf8');
 const coreStackScriptPath = path.join(__dirname, '..', 'scripts', 'AvaCoreStack.ps1');
 const coreStackScriptContents = fs.readFileSync(coreStackScriptPath, 'utf8');
+const spywareRiskAuditScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_SPYWARE_RISK_AUDIT.ps1');
+const spywareRiskAuditScriptContents = fs.readFileSync(spywareRiskAuditScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -290,6 +292,45 @@ test('AVA Baseline Drift script should define core drift detection functions', (
 	assert.ok(driftScriptContents.includes('function New-DriftReport'));
 	assert.ok(driftScriptContents.includes('ava_baseline_drift.html'));
 	assert.ok(driftScriptContents.includes('AVA BASELINE DRIFT'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA SPYWARE RISK AUDIT
+// ---------------------------------------------------------------------------
+
+test('AVA SPYWARE RISK AUDIT script should exist', () => {
+	assert.ok(fs.existsSync(spywareRiskAuditScriptPath));
+});
+
+test('AVA SPYWARE RISK AUDIT script should parse without PowerShell syntax errors', () => {
+	const escapedPath = spywareRiskAuditScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA SPYWARE RISK AUDIT script should not contain pasted template artifacts', () => {
+	assert.ok(!spywareRiskAuditScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!spywareRiskAuditScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA SPYWARE RISK AUDIT script should define read-only audit/tangle/report outputs', () => {
+	assert.ok(spywareRiskAuditScriptContents.includes('AVA SPYWARE RISK AUDIT'));
+	assert.ok(spywareRiskAuditScriptContents.includes("Read-Only / Lokal / Keine Änderungen"));
+	assert.ok(spywareRiskAuditScriptContents.includes("Write-Tangle -Type 'AVA_SPYWARE_RISK_AUDIT'"));
+	assert.ok(spywareRiskAuditScriptContents.includes('ava_spyware_risk_audit.html'));
+	assert.ok(spywareRiskAuditScriptContents.includes('ava_spyware_risk_audit.json'));
+	assert.ok(spywareRiskAuditScriptContents.includes('ava_spyware_risk_audit.txt'));
+	assert.ok(spywareRiskAuditScriptContents.includes('Get-MpComputerStatus'));
+	assert.ok(spywareRiskAuditScriptContents.includes('Get-NetTCPConnection -State Established'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
