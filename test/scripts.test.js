@@ -375,5 +375,47 @@ test('AVA Auto Start script should define scheduled task with correct settings',
 	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskSettingsSet'));
 });
 
+// ---------------------------------------------------------------------------
+// AVA SOC Portal V6 — Safe Edition (snapshot + analysis JSON output)
+// ---------------------------------------------------------------------------
+
+const v6SafeScriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV6Safe.ps1');
+const v6SafeScriptContents = fs.readFileSync(v6SafeScriptPath, 'utf8');
+
+test('AVA SOC Portal V6 Safe script should exist', () => {
+	assert.ok(fs.existsSync(v6SafeScriptPath));
+});
+
+test('AVA SOC Portal V6 Safe script should parse without PowerShell syntax errors', () => {
+	const escapedPath = v6SafeScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA SOC Portal V6 Safe script should not contain pasted template artifacts', () => {
+	assert.ok(!v6SafeScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!v6SafeScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA SOC Portal V6 Safe script should define portal, snapshot and analysis JSON outputs', () => {
+	assert.ok(v6SafeScriptContents.includes('AVA SOC PORTAL V6 SAFE'));
+	assert.ok(v6SafeScriptContents.includes('ava_soc_portal_v6_safe.html'));
+	assert.ok(v6SafeScriptContents.includes('snapshot_latest.json'));
+	assert.ok(v6SafeScriptContents.includes('analysis_latest.json'));
+	assert.ok(v6SafeScriptContents.includes('function Build-Portal'));
+	assert.ok(v6SafeScriptContents.includes('function New-Snapshot'));
+	assert.ok(v6SafeScriptContents.includes('function Analyze-Snapshot'));
+	assert.ok(v6SafeScriptContents.includes('function Write-Tangle'));
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
