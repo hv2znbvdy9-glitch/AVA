@@ -333,5 +333,47 @@ test('AVA SPYWARE RISK AUDIT script should define read-only audit/tangle/report 
 	assert.ok(spywareRiskAuditScriptContents.includes('Get-NetTCPConnection -State Established'));
 });
 
+// ---------------------------------------------------------------------------
+// AVA AUTO START + 5 MIN REPEAT
+// ---------------------------------------------------------------------------
+
+const autoStartScriptPath = path.join(__dirname, '..', 'scripts', 'AvaAutoStart.ps1');
+const autoStartScriptContents = fs.readFileSync(autoStartScriptPath, 'utf8');
+
+test('AVA Auto Start script should exist', () => {
+	assert.ok(fs.existsSync(autoStartScriptPath));
+});
+
+test('AVA Auto Start script should parse without PowerShell syntax errors', () => {
+	const escapedPath = autoStartScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA Auto Start script should not contain pasted template artifacts', () => {
+	assert.ok(!autoStartScriptContents.includes('<__filter_complete__>'));
+	assert.ok(!autoStartScriptContents.includes('2&gt;&amp;1'));
+});
+
+test('AVA Auto Start script should define scheduled task with correct settings', () => {
+	assert.ok(autoStartScriptContents.includes('AVA_SOC_V7_SAFE'));
+	assert.ok(autoStartScriptContents.includes('Register-ScheduledTask'));
+	assert.ok(autoStartScriptContents.includes('PT5M'));
+	assert.ok(autoStartScriptContents.includes('P36500D'));
+	assert.ok(autoStartScriptContents.includes('RunLevel Highest'));
+	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskAction'));
+	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskTrigger'));
+	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskSettingsSet'));
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
