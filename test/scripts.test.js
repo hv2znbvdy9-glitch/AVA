@@ -32,6 +32,12 @@ const coreStackScriptPath = path.join(__dirname, '..', 'scripts', 'AvaCoreStack.
 const coreStackScriptContents = fs.readFileSync(coreStackScriptPath, 'utf8');
 const spywareRiskAuditScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_SPYWARE_RISK_AUDIT.ps1');
 const spywareRiskAuditScriptContents = fs.readFileSync(spywareRiskAuditScriptPath, 'utf8');
+const securityGuardianScriptPath = path.join(__dirname, '..', 'scripts', 'SecurityGuardian.ps1');
+const securityGuardianScriptContents = fs.readFileSync(securityGuardianScriptPath, 'utf8');
+const symbolicMemoryPortalScriptPath = path.join(__dirname, '..', 'scripts', 'AvaSymbolicMemoryPortal.ps1');
+const symbolicMemoryPortalScriptContents = fs.readFileSync(symbolicMemoryPortalScriptPath, 'utf8');
+const wandersmannMemoryCoreScriptPath = path.join(__dirname, '..', 'scripts', 'WandersmannMemoryCore.ps1');
+const wandersmannMemoryCoreScriptContents = fs.readFileSync(wandersmannMemoryCoreScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -373,6 +379,83 @@ test('AVA Auto Start script should define scheduled task with correct settings',
 	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskAction'));
 	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskTrigger'));
 	assert.ok(autoStartScriptContents.includes('New-ScheduledTaskSettingsSet'));
+});
+
+// ---------------------------------------------------------------------------
+// SecurityGuardian + Memory scripts — local defensive/private scope checks
+// ---------------------------------------------------------------------------
+
+test('SecurityGuardian script should exist', () => {
+	assert.ok(fs.existsSync(securityGuardianScriptPath));
+});
+
+test('SecurityGuardian script should parse without PowerShell syntax errors', () => {
+	const escapedPath = securityGuardianScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('SecurityGuardian script should declare local defensive non-offensive intent', () => {
+	assert.ok(securityGuardianScriptContents.includes('Lokal / Defensiv / Administrative Hardening'));
+	assert.ok(securityGuardianScriptContents.includes('Keine Angriffe'));
+	assert.ok(securityGuardianScriptContents.includes('Keine Exploits'));
+	assert.ok(securityGuardianScriptContents.includes('Keine Fremdscans'));
+});
+
+test('AVA Symbolic Memory Portal script should exist', () => {
+	assert.ok(fs.existsSync(symbolicMemoryPortalScriptPath));
+});
+
+test('AVA Symbolic Memory Portal script should parse without PowerShell syntax errors', () => {
+	const escapedPath = symbolicMemoryPortalScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA Symbolic Memory Portal script should declare local private read-only scope', () => {
+	assert.ok(symbolicMemoryPortalScriptContents.includes('Lokal / Privat / Read-Only / Kein Upload / Keine Überwachung'));
+});
+
+test('Wandersmann Memory Core script should exist', () => {
+	assert.ok(fs.existsSync(wandersmannMemoryCoreScriptPath));
+});
+
+test('Wandersmann Memory Core script should parse without PowerShell syntax errors', () => {
+	const escapedPath = wandersmannMemoryCoreScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('Wandersmann Memory Core script should declare local private no-upload scope', () => {
+	assert.ok(wandersmannMemoryCoreScriptContents.includes('Lokal / Privat / Erinnerungsportal'));
+	assert.ok(wandersmannMemoryCoreScriptContents.includes('Keine Cloud. Kein Upload. Keine Überwachung.'));
 });
 
 // ---------------------------------------------------------------------------
