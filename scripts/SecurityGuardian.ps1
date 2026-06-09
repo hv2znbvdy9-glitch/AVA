@@ -1,4 +1,14 @@
 #requires -RunAsAdministrator
+<#
+SECURITY GUARDIAN (AVA)
+Lokal / Defensiv / Administrative Hardening
+
+Keine Angriffe
+Keine Exploits
+Keine Fremdscans
+Nur lokale Härtung und Sichtbarkeit auf diesem System
+#>
+
 [CmdletBinding()]
 param(
     [switch]$RunOnce,
