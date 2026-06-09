@@ -773,7 +773,7 @@ $trendRowsHtml
 </div>
 
 <div class="card">
-<h2>Integritaetspruefung der AVA-Dateien selbst</h2>
+<h2>Integritätsprüfung der AVA-Dateien selbst</h2>
 <p>Status: <strong>$(HtmlEncode $Integrity.status)</strong></p>
 <p>Added: $(HtmlEncode $integrityAdded)</p>
 <p>Changed: $(HtmlEncode $integrityChanged)</p>
