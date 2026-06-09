@@ -176,7 +176,16 @@ test('AVA CORE STACK script should define core defensive functions', () => {
 	assert.ok(coreStackScriptContents.includes('function New-Snapshot'));
 	assert.ok(coreStackScriptContents.includes('function Compare-WithBaseline'));
 	assert.ok(coreStackScriptContents.includes('function Build-Portal'));
+	assert.ok(coreStackScriptContents.includes('function Get-ProcessGraph'));
+	assert.ok(coreStackScriptContents.includes('function Get-RemoteIpReputation'));
+	assert.ok(coreStackScriptContents.includes('function Get-RiskAssessment'));
+	assert.ok(coreStackScriptContents.includes('function Update-TrendState'));
+	assert.ok(coreStackScriptContents.includes('function Get-AvaFileIntegrity'));
 	assert.ok(coreStackScriptContents.includes('ava_core_portal.html'));
+	assert.ok(coreStackScriptContents.includes('Portal-Dashboard mit Zeitachse'));
+	assert.ok(coreStackScriptContents.includes('Trendanalyse über mehrere Tage'));
+	assert.ok(coreStackScriptContents.includes('AVA Memory ↔ Alert ↔ Prozess ↔ Netzwerk'));
+	assert.ok(coreStackScriptContents.includes('Integritätsprüfung der AVA-Dateien selbst'));
 });
 
 // ---------------------------------------------------------------------------
