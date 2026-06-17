@@ -85,5 +85,31 @@ test('runAll should return empty array for empty input', () => {
 	assert.deepStrictEqual(results, []);
 });
 
+test('runAll should handle null options without crashing', () => {
+	const results = runAll(['echo hello'], null);
+	assert.strictEqual(results.length, 1);
+	assert.strictEqual(results[0].stdout.trim(), 'hello');
+	assert.strictEqual(results[0].exitCode, 0);
+});
+
+test('runAll should handle nested shell commands', () => {
+	const results = runAll(['echo $(echo nested)'], {silent: true});
+	assert.strictEqual(results.length, 1);
+	assert.strictEqual(results[0].stdout.trim(), 'nested');
+	assert.strictEqual(results[0].exitCode, 0);
+});
+
+test('runAll should handle commands with a delay', () => {
+	const results = runAll([`node -e "setTimeout(() => { process.stdout.write('done'); }, 100)"`], {silent: true});
+	assert.strictEqual(results.length, 1);
+	assert.strictEqual(results[0].stdout.trim(), 'done');
+	assert.strictEqual(results[0].exitCode, 0);
+});
+
+test('runAll should throw for invalid command in array', () => {
+	assert.throws(() => runAll([null], {silent: true}), {message: 'A command string is required'});
+	assert.throws(() => runAll([''], {silent: true}), {message: 'A command string is required'});
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
