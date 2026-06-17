@@ -85,5 +85,18 @@ test('runAll should return empty array for empty input', () => {
 	assert.deepStrictEqual(results, []);
 });
 
+test('run should accept null options without throwing', () => {
+	const result = run('echo hello', null);
+	assert.strictEqual(result.stdout.trim(), 'hello');
+	assert.strictEqual(result.exitCode, 0);
+});
+
+test('runAll should accept null options without throwing', () => {
+	const results = runAll(['echo hello'], null);
+	assert.strictEqual(results.length, 1);
+	assert.strictEqual(results[0].stdout.trim(), 'hello');
+	assert.strictEqual(results[0].exitCode, 0);
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
