@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const {run} = require('../src/run');
+const {run, runAllParallel} = require('../src/run');
 const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
@@ -28,6 +28,7 @@ if (args.includes('--safe-local-node')) {
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('       ava run <command>');
+	console.error('       ava --parallel <cmd1> [cmd2 ...]');
 	console.error('       ava --safe-local-node');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
@@ -49,6 +50,20 @@ if (args[0] === 'run') {
 	}
 }
 
-const command = args.join(' ');
-const result = run(command, {silent: false});
-process.exit(result.exitCode);
+if (args[0] === '--parallel') {
+	const commands = args.slice(1);
+	if (commands.length === 0) {
+		console.error('Usage: ava --parallel <cmd1> [cmd2 ...]');
+		console.error('Example: ava --parallel "echo hello" "echo world"');
+		process.exit(1);
+	}
+
+	runAllParallel(commands, {silent: false}).then((results) => {
+		const worst = results.reduce((max, r) => Math.max(max, r.exitCode), 0);
+		process.exit(worst);
+	});
+} else {
+	const command = args.join(' ');
+	const result = run(command, {silent: false});
+	process.exit(result.exitCode);
+}
