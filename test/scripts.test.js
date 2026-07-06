@@ -42,6 +42,8 @@ const safeAuditScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_SAFE_AUDI
 const safeAuditScriptContents = fs.readFileSync(safeAuditScriptPath, 'utf8');
 const safeAuditStarterPath = path.join(__dirname, '..', 'scripts', 'START_AVA_SAFE_AUDIT_ADMIN.cmd');
 const safeAuditStarterContents = fs.readFileSync(safeAuditStarterPath, 'utf8');
+const devito01610ScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_DEVITO_01610_SAFE_AUDIT.ps1');
+const devito01610ScriptContents = fs.readFileSync(devito01610ScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -550,6 +552,49 @@ test('AVA SAFE AUDIT admin starter should exist and call the script', () => {
 	assert.ok(safeAuditStarterContents.includes('AVA_SAFE_AUDIT_CHAT_MODE_v1.ps1'));
 	assert.ok(safeAuditStarterContents.includes('-ExecutionPolicy Bypass'));
 	assert.ok(safeAuditStarterContents.includes('-OpenReport'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA DEVITO 01610 SAFE AUDIT
+// ---------------------------------------------------------------------------
+
+test('AVA DEVITO 01610 SAFE AUDIT script should exist', () => {
+	assert.ok(fs.existsSync(devito01610ScriptPath));
+});
+
+test('AVA DEVITO 01610 SAFE AUDIT script should parse without PowerShell syntax errors', () => {
+	const escapedPath = devito01610ScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		'$tokens = $null',
+		'$errors = $null',
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		'if ($errors.Count -gt 0) {',
+		'\t$errors | ForEach-Object { $_.Message }',
+		'\texit 1',
+		'}',
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA DEVITO 01610 SAFE AUDIT script should define read-only audit outputs', () => {
+	assert.ok(devito01610ScriptContents.includes('SAFE_AUDIT_DIRECT_PASTE_v1'));
+	assert.ok(devito01610ScriptContents.includes('Read-only audit. No firewall, Defender, Registry, user, service, or scheduled-task changes.'));
+	assert.ok(devito01610ScriptContents.includes('Run-Safe'));
+	assert.ok(devito01610ScriptContents.includes('18_findings'));
+	assert.ok(devito01610ScriptContents.includes('AVA_SAFE_AUDIT_REPORT.html'));
+	assert.ok(devito01610ScriptContents.includes('Compress-Archive'));
+});
+
+test('AVA DEVITO 01610 SAFE AUDIT script should not contain broken placeholders', () => {
+	assert.ok(!devito01610ScriptContents.includes('$dhild'));
+	assert.ok(!devito01610ScriptContents.includes('$env:dhild'));
+	assert.ok(!devito01610ScriptContents.includes('$env:ava\\'));
+	assert.ok(!devito01610ScriptContents.includes('&amp;'));
+	assert.ok(!devito01610ScriptContents.includes('Danny Devito'));
+	assert.ok(!devito01610ScriptContents.includes('Danny Nico Hildebrand'));
+	assert.ok(!devito01610ScriptContents.includes('foreach ($AVA in $AVA)'));
+	assert.ok(!devito01610ScriptContents.includes('"AVA 01610"'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
