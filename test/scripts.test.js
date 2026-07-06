@@ -38,6 +38,10 @@ const symbolicMemoryPortalScriptPath = path.join(__dirname, '..', 'scripts', 'Av
 const symbolicMemoryPortalScriptContents = fs.readFileSync(symbolicMemoryPortalScriptPath, 'utf8');
 const wandersmannMemoryCoreScriptPath = path.join(__dirname, '..', 'scripts', 'WandersmannMemoryCore.ps1');
 const wandersmannMemoryCoreScriptContents = fs.readFileSync(wandersmannMemoryCoreScriptPath, 'utf8');
+const safeAuditScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_SAFE_AUDIT_CHAT_MODE_v1.ps1');
+const safeAuditScriptContents = fs.readFileSync(safeAuditScriptPath, 'utf8');
+const safeAuditStarterPath = path.join(__dirname, '..', 'scripts', 'START_AVA_SAFE_AUDIT_ADMIN.cmd');
+const safeAuditStarterContents = fs.readFileSync(safeAuditStarterPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -507,6 +511,45 @@ test('AVA SOC Portal V6 Safe script should define portal, snapshot and analysis 
 	assert.ok(v6SafeScriptContents.includes('function New-Snapshot'));
 	assert.ok(v6SafeScriptContents.includes('function Analyze-Snapshot'));
 	assert.ok(v6SafeScriptContents.includes('function Write-Tangle'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA SAFE AUDIT CHAT MODE v1
+// ---------------------------------------------------------------------------
+
+test('AVA SAFE AUDIT CHAT MODE v1 script should exist', () => {
+	assert.ok(fs.existsSync(safeAuditScriptPath));
+});
+
+test('AVA SAFE AUDIT CHAT MODE v1 script should parse without PowerShell syntax errors', () => {
+	const escapedPath = safeAuditScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		"$tokens = $null",
+		"$errors = $null",
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		"if ($errors.Count -gt 0) {",
+		"\t$errors | ForEach-Object { $_.Message }",
+		"\texit 1",
+		"}",
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA SAFE AUDIT CHAT MODE v1 script should define read-only audit outputs', () => {
+	assert.ok(safeAuditScriptContents.includes('SAFE_AUDIT_CHAT_MODE_v1'));
+	assert.ok(safeAuditScriptContents.includes('Read-only audit. No firewall, Defender, Registry, user, service, or scheduled-task changes.'));
+	assert.ok(safeAuditScriptContents.includes('Run-Safe'));
+	assert.ok(safeAuditScriptContents.includes('20_findings'));
+	assert.ok(safeAuditScriptContents.includes('AVA_SAFE_AUDIT_REPORT.html'));
+	assert.ok(safeAuditScriptContents.includes('Compress-Archive'));
+});
+
+test('AVA SAFE AUDIT admin starter should exist and call the script', () => {
+	assert.ok(fs.existsSync(safeAuditStarterPath));
+	assert.ok(safeAuditStarterContents.includes('AVA_SAFE_AUDIT_CHAT_MODE_v1.ps1'));
+	assert.ok(safeAuditStarterContents.includes('-ExecutionPolicy Bypass'));
+	assert.ok(safeAuditStarterContents.includes('-OpenReport'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
