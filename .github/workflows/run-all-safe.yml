@@ -1,0 +1,24 @@
+name: Run All Safe Checks
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/run-all-safe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  node-tests:
+    name: Node test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run repository tests
+        run: npm test
