@@ -22,3 +22,5 @@ jobs:
           node-version: 22
       - name: Run repository tests
         run: npm test
+
+# Safe trigger marker: 2026-07-18
