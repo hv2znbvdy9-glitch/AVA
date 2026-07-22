@@ -73,23 +73,28 @@ try {
 
         'Apply' {
             if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, 'Enable Windows Firewall and add narrowly scoped inbound block rules')) {
-                Set-NetFirewallProfile -Profile Domain,Private,Public \
-                    -Enabled True \
-                    -DefaultInboundAction Block \
-                    -DefaultOutboundAction Allow
+                $profileParams = @{
+                    Profile = @('Domain','Private','Public')
+                    Enabled = $true
+                    DefaultInboundAction = 'Block'
+                    DefaultOutboundAction = 'Allow'
+                }
+                Set-NetFirewallProfile @profileParams
 
                 $blockedTcpPorts = @(21,23,135,139,445,3389,5985,5986)
                 foreach ($port in $blockedTcpPorts) {
                     $ruleName = "AVA-SAFE-BLOCK-TCP-$port"
                     if (-not (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue)) {
-                        New-NetFirewallRule \
-                            -DisplayName $ruleName \
-                            -Direction Inbound \
-                            -Action Block \
-                            -Protocol TCP \
-                            -LocalPort $port \
-                            -Profile Any \
-                            -Description 'AVA defensive local block rule. No outbound action.' | Out-Null
+                        $ruleParams = @{
+                            DisplayName = $ruleName
+                            Direction = 'Inbound'
+                            Action = 'Block'
+                            Protocol = 'TCP'
+                            LocalPort = $port
+                            Profile = 'Any'
+                            Description = 'AVA defensive local block rule. No outbound action.'
+                        }
+                        New-NetFirewallRule @ruleParams | Out-Null
                     }
                 }
 
