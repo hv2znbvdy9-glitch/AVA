@@ -18,6 +18,11 @@ function Test-IsAdministrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Test-CommandAvailable {
+    param([Parameter(Mandatory)][string]$Name)
+    return [bool](Get-Command -Name $Name -ErrorAction SilentlyContinue)
+}
+
 if (-not (Test-IsAdministrator)) {
     throw 'PowerShell must be started as Administrator.'
 }
@@ -37,27 +42,73 @@ try {
         Mode = $Mode
         SafetyBoundary = 'Defensive local hardening only. No counterattack, no remote scanning, no persistence, no endless loop.'
         Actions = @()
-        Errors = @()
+        Warnings = @()
     }
 
     $firewallBackup = Join-Path $caseDir 'firewall_before.wfw'
     & netsh.exe advfirewall export $firewallBackup | Out-Null
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $firewallBackup)) {
+        throw 'Windows Firewall policy export failed. No changes were attempted.'
+    }
     $result.Actions += "Firewall policy exported to $firewallBackup"
 
     $snapshot = [ordered]@{}
-    $snapshot.FirewallProfiles = Get-NetFirewallProfile |
-        Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction
-    $snapshot.Defender = Get-MpComputerStatus |
-        Select-Object AntivirusEnabled, AntispywareEnabled, RealTimeProtectionEnabled,
-                      BehaviorMonitorEnabled, IoavProtectionEnabled, NISEnabled,
-                      AntivirusSignatureLastUpdated, QuickScanEndTime, FullScanEndTime
-    $snapshot.LocalAdministrators = Get-LocalGroupMember -Group 'Administrators' |
-        Select-Object Name, ObjectClass, PrincipalSource
-    $snapshot.EstablishedConnections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue |
-        Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, OwningProcess
-    $snapshot.NonMicrosoftScheduledTasks = Get-ScheduledTask |
-        Where-Object { $_.TaskPath -notlike '\Microsoft\*' } |
-        Select-Object TaskName, TaskPath, State, Author
+
+    if (Test-CommandAvailable 'Get-NetFirewallProfile') {
+        $snapshot.FirewallProfiles = Get-NetFirewallProfile |
+            Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction
+    }
+    else {
+        $snapshot.FirewallProfiles = @()
+        $result.Warnings += 'Get-NetFirewallProfile is unavailable.'
+    }
+
+    if (Test-CommandAvailable 'Get-MpComputerStatus') {
+        $snapshot.Defender = Get-MpComputerStatus |
+            Select-Object AntivirusEnabled, AntispywareEnabled, RealTimeProtectionEnabled,
+                          BehaviorMonitorEnabled, IoavProtectionEnabled, NISEnabled,
+                          AntivirusSignatureLastUpdated, QuickScanEndTime, FullScanEndTime
+    }
+    else {
+        $snapshot.Defender = $null
+        $result.Warnings += 'Microsoft Defender status command is unavailable.'
+    }
+
+    if (Test-CommandAvailable 'Get-LocalGroup') {
+        $administratorsGroup = Get-LocalGroup -SID 'S-1-5-32-544' -ErrorAction SilentlyContinue
+        if ($null -ne $administratorsGroup) {
+            $snapshot.LocalAdministrators = Get-LocalGroupMember -Group $administratorsGroup.Name |
+                Select-Object Name, ObjectClass, PrincipalSource
+        }
+        else {
+            $snapshot.LocalAdministrators = @()
+            $result.Warnings += 'Local Administrators group could not be resolved by SID.'
+        }
+    }
+    else {
+        $snapshot.LocalAdministrators = @()
+        $result.Warnings += 'LocalAccounts module is unavailable.'
+    }
+
+    if (Test-CommandAvailable 'Get-NetTCPConnection') {
+        $snapshot.EstablishedConnections = Get-NetTCPConnection -State Established -ErrorAction SilentlyContinue |
+            Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, OwningProcess
+    }
+    else {
+        $snapshot.EstablishedConnections = @()
+        $result.Warnings += 'Get-NetTCPConnection is unavailable.'
+    }
+
+    if (Test-CommandAvailable 'Get-ScheduledTask') {
+        $snapshot.NonMicrosoftScheduledTasks = Get-ScheduledTask |
+            Where-Object { $_.TaskPath -notlike '\Microsoft\*' } |
+            Select-Object TaskName, TaskPath, State, Author
+    }
+    else {
+        $snapshot.NonMicrosoftScheduledTasks = @()
+        $result.Warnings += 'ScheduledTasks module is unavailable.'
+    }
+
     $snapshot.Processes = Get-Process |
         Sort-Object ProcessName |
         Select-Object ProcessName, Id, Path, StartTime -ErrorAction SilentlyContinue
@@ -72,6 +123,11 @@ try {
         }
 
         'Apply' {
+            if (-not (Test-CommandAvailable 'Set-NetFirewallProfile') -or
+                -not (Test-CommandAvailable 'New-NetFirewallRule')) {
+                throw 'Required Windows Firewall PowerShell commands are unavailable. No changes were attempted.'
+            }
+
             if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, 'Enable Windows Firewall and add narrowly scoped inbound block rules')) {
                 $profileParams = @{
                     Profile = @('Domain','Private','Public')
@@ -98,10 +154,16 @@ try {
                     }
                 }
 
-                Update-MpSignature -ErrorAction Continue
+                if (Test-CommandAvailable 'Update-MpSignature') {
+                    Update-MpSignature -ErrorAction Continue
+                    $result.Actions += 'Microsoft Defender signature update requested.'
+                }
+                else {
+                    $result.Warnings += 'Microsoft Defender signature command is unavailable.'
+                }
+
                 $result.Actions += 'Firewall enabled for all profiles; inbound default set to block; outbound remains allowed.'
                 $result.Actions += "Inbound TCP blocks ensured for ports: $($blockedTcpPorts -join ', ')"
-                $result.Actions += 'Microsoft Defender signature update requested.'
             }
         }
 
@@ -114,6 +176,9 @@ try {
             }
             if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Restore firewall policy from $FirewallBackupPath")) {
                 & netsh.exe advfirewall import $FirewallBackupPath | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'Windows Firewall policy import failed.'
+                }
                 $result.Actions += "Firewall policy restored from $FirewallBackupPath"
             }
         }
@@ -123,6 +188,7 @@ try {
     $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportJson -Encoding UTF8
 
     $encodedActions = ($result.Actions | ForEach-Object { '<li>' + [System.Net.WebUtility]::HtmlEncode($_) + '</li>' }) -join "`n"
+    $encodedWarnings = ($result.Warnings | ForEach-Object { '<li>' + [System.Net.WebUtility]::HtmlEncode($_) + '</li>' }) -join "`n"
     $html = @"
 <!doctype html>
 <html lang="en">
@@ -141,6 +207,7 @@ h1{color:#56b4ff}.ok{color:#7ee787}.warn{color:#ffcc66}code{background:#06101d;p
 <p class="ok"><strong>Boundary:</strong> Defensive local hardening only.</p>
 <p class="warn">No counterattack, remote scan, SYSTEM persistence, endless loop, credential action, or third-party targeting was performed.</p>
 <h2>Actions</h2><ul>$encodedActions</ul>
+<h2>Warnings</h2><ul>$encodedWarnings</ul>
 <p>Evidence directory: <code>$caseDir</code></p>
 </main></body></html>
 "@
@@ -156,5 +223,5 @@ catch {
     throw
 }
 finally {
-    Stop-Transcript | Out-Null
+    Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
 }
