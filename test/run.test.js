@@ -53,6 +53,12 @@ test('should return empty stderr on success', () => {
 	assert.strictEqual(result.stderr, '');
 });
 
+test('should return stderr output on success if the command wrote to stderr', () => {
+	const result = run('node -e "process.stderr.write(\'warn\\n\'); process.exit(0)"', {silent: true});
+	assert.strictEqual(result.stderr.trim(), 'warn');
+	assert.strictEqual(result.exitCode, 0);
+});
+
 test('should return stderr output on failure', () => {
 	const result = run('node -e "process.stderr.write(\'err\\n\'); process.exit(1)"', {silent: true});
 	assert.strictEqual(result.stderr.trim(), 'err');

@@ -1,6 +1,6 @@
 'use strict';
 
-const {execSync} = require('child_process');
+const {spawnSync} = require('child_process');
 
 /**
  * Execute a command string in a child process.
@@ -19,22 +19,23 @@ function run(command, options = {}) {
 		encoding: 'utf8',
 		cwd: options.cwd || process.cwd(),
 		stdio: 'pipe',
+		shell: true,
 	};
 
 	try {
-		const stdout = execSync(command, execOptions) || '';
-		const output = stdout.toString();
-		if (!options.silent && output) {
-			process.stdout.write(output);
+		const result = spawnSync(command, execOptions);
+
+		if (result.error) {
+			throw result.error;
 		}
 
-		return {stdout: output, stderr: '', exitCode: 0};
-	} catch (error) {
-		const output = error.stdout ? error.stdout.toString() : '';
-		const stderr = error.stderr ? error.stderr.toString() : '';
+		const stdout = result.stdout ? result.stdout.toString() : '';
+		const stderr = result.stderr ? result.stderr.toString() : '';
+		const exitCode = result.status === null ? 1 : result.status;
+
 		if (!options.silent) {
-			if (output) {
-				process.stdout.write(output);
+			if (stdout) {
+				process.stdout.write(stdout);
 			}
 
 			if (stderr) {
@@ -43,9 +44,15 @@ function run(command, options = {}) {
 		}
 
 		return {
-			stdout: output,
+			stdout,
 			stderr,
-			exitCode: error.status || 1,
+			exitCode,
+		};
+	} catch (error) {
+		return {
+			stdout: '',
+			stderr: error.message || 'Execution failed',
+			exitCode: 1,
 		};
 	}
 }
