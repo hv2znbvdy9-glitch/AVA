@@ -22,39 +22,28 @@ function run(command, options = {}) {
 		shell: true,
 	};
 
-	try {
-		const result = spawnSync(command, execOptions);
+	const result = spawnSync(command, execOptions);
 
-		if (result.error) {
-			throw result.error;
+	const stdout = result.stdout ? result.stdout.toString() : '';
+	const stderrCaptured = result.stderr ? result.stderr.toString() : '';
+	const stderr = stderrCaptured || (result.error ? result.error.message : '');
+	const exitCode = result.status === null ? 1 : result.status;
+
+	if (!options.silent) {
+		if (stdout) {
+			process.stdout.write(stdout);
 		}
 
-		const stdout = result.stdout ? result.stdout.toString() : '';
-		const stderr = result.stderr ? result.stderr.toString() : '';
-		const exitCode = result.status === null ? 1 : result.status;
-
-		if (!options.silent) {
-			if (stdout) {
-				process.stdout.write(stdout);
-			}
-
-			if (stderr) {
-				process.stderr.write(stderr);
-			}
+		if (stderr) {
+			process.stderr.write(stderr);
 		}
-
-		return {
-			stdout,
-			stderr,
-			exitCode,
-		};
-	} catch (error) {
-		return {
-			stdout: '',
-			stderr: error.message || 'Execution failed',
-			exitCode: 1,
-		};
 	}
+
+	return {
+		stdout,
+		stderr,
+		exitCode,
+	};
 }
 
 module.exports = {run};

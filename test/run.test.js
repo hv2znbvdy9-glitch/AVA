@@ -59,6 +59,19 @@ test('should return stderr output on success if the command wrote to stderr', ()
 	assert.strictEqual(result.exitCode, 0);
 });
 
+test('should forward stderr to process.stderr when silent is false on success', () => {
+	const writes = [];
+	const original = process.stderr.write.bind(process.stderr);
+	process.stderr.write = (chunk) => { writes.push(chunk); return true; };
+	try {
+		const result = run('node -e "process.stderr.write(\'warn\\n\'); process.exit(0)"', {silent: false});
+		assert.strictEqual(result.exitCode, 0);
+		assert.ok(writes.some(w => w.includes('warn')), 'stderr output should have been forwarded to process.stderr');
+	} finally {
+		process.stderr.write = original;
+	}
+});
+
 test('should return stderr output on failure', () => {
 	const result = run('node -e "process.stderr.write(\'err\\n\'); process.exit(1)"', {silent: true});
 	assert.strictEqual(result.stderr.trim(), 'err');
