@@ -22,6 +22,8 @@ function test(name, fn) {
 
 const scriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV5.ps1');
 const scriptContents = fs.readFileSync(scriptPath, 'utf8');
+const v4ScriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV4.ps1');
+const v4ScriptContents = fs.readFileSync(v4ScriptPath, 'utf8');
 const nextLayerScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314NextLayerAll.ps1');
 const nextLayerScriptContents = fs.readFileSync(nextLayerScriptPath, 'utf8');
 const safeLocalScriptPath = path.join(__dirname, '..', 'scripts', 'Ava314SafeLocalNode.ps1');
@@ -595,6 +597,38 @@ test('AVA DEVITO 01610 SAFE AUDIT script should not contain broken placeholders'
 	assert.ok(!devito01610ScriptContents.includes('Danny Nico Hildebrand'));
 	assert.ok(!devito01610ScriptContents.includes('foreach ($AVA in $AVA)'));
 	assert.ok(!devito01610ScriptContents.includes('"AVA 01610"'));
+});
+
+test('AVA SOC Portal V4 script should exist', () => {
+	assert.ok(fs.existsSync(v4ScriptPath));
+});
+
+test('AVA SOC Portal V4 script should parse without PowerShell syntax errors', () => {
+	const escapedPath = v4ScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		'$tokens = $null',
+		'$errors = $null',
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		'if ($errors.Count -gt 0) {',
+		'\t$errors | ForEach-Object { $_.Message }',
+		'\texit 1',
+		'}',
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA SOC Portal V4 script should define Graph Engine features', () => {
+	assert.ok(v4ScriptContents.includes('function Ensure-Dirs'));
+	assert.ok(v4ScriptContents.includes('function Html'));
+	assert.ok(v4ScriptContents.includes('function Read-JsonLines'));
+	assert.ok(v4ScriptContents.includes('function Add-Node'));
+	assert.ok(v4ScriptContents.includes('function Add-Link'));
+	assert.ok(v4ScriptContents.includes('function Build-Graph'));
+	assert.ok(v4ScriptContents.includes('function Get-Risk'));
+	assert.ok(v4ScriptContents.includes('function Build-Portal'));
+	assert.ok(v4ScriptContents.includes('graph_v4.json'));
+	assert.ok(v4ScriptContents.includes('ava_portal_v4.html'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
