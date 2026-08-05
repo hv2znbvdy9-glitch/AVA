@@ -44,6 +44,8 @@ const safeAuditStarterPath = path.join(__dirname, '..', 'scripts', 'START_AVA_SA
 const safeAuditStarterContents = fs.readFileSync(safeAuditStarterPath, 'utf8');
 const devito01610ScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_DEVITO_01610_SAFE_AUDIT.ps1');
 const devito01610ScriptContents = fs.readFileSync(devito01610ScriptPath, 'utf8');
+const satelliteLabScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_01610_SATELLITE_LAB.ps1');
+const satelliteLabScriptContents = fs.readFileSync(satelliteLabScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -595,6 +597,49 @@ test('AVA DEVITO 01610 SAFE AUDIT script should not contain broken placeholders'
 	assert.ok(!devito01610ScriptContents.includes('Danny Nico Hildebrand'));
 	assert.ok(!devito01610ScriptContents.includes('foreach ($AVA in $AVA)'));
 	assert.ok(!devito01610ScriptContents.includes('"AVA 01610"'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA 01610 SATELLITE LAB — Mock Ground Station, Relais and Satellites
+// ---------------------------------------------------------------------------
+
+test('AVA 01610 SATELLITE LAB script should exist', () => {
+	assert.ok(fs.existsSync(satelliteLabScriptPath));
+});
+
+test('AVA 01610 SATELLITE LAB script should parse without PowerShell syntax errors', () => {
+	const escapedPath = satelliteLabScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		'$tokens = $null',
+		'$errors = $null',
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		'if ($errors.Count -gt 0) {',
+		'\t$errors | ForEach-Object { $_.Message }',
+		'\texit 1',
+		'}',
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA 01610 SATELLITE LAB script should define Ground Station, Relais, and Satellites with custom keys', () => {
+	assert.ok(satelliteLabScriptContents.includes('Mock-Bodenstation (01610)'));
+	assert.ok(satelliteLabScriptContents.includes('Relais (Kompromittiert)'));
+	assert.ok(satelliteLabScriptContents.includes('Satellit A'));
+	assert.ok(satelliteLabScriptContents.includes('Satellit B'));
+	assert.ok(satelliteLabScriptContents.includes('Satellit C'));
+	assert.ok(satelliteLabScriptContents.includes('SecretKey_SatA_01610_Ava_Safe'));
+	assert.ok(satelliteLabScriptContents.includes('SecretKey_SatB_01610_Ava_Safe'));
+	assert.ok(satelliteLabScriptContents.includes('SecretKey_SatC_01610_Ava_Safe'));
+});
+
+test('AVA 01610 SATELLITE LAB script should simulate relay compromise and signature verification failure', () => {
+	assert.ok(satelliteLabScriptContents.includes('RELAIS_COMPROMISED'));
+	assert.ok(satelliteLabScriptContents.includes('AUTH_FAILURE'));
+	assert.ok(satelliteLabScriptContents.includes('Verify-Command'));
+	assert.ok(satelliteLabScriptContents.includes('ava_satellite_lab_report.html'));
+	assert.ok(satelliteLabScriptContents.includes('ava_satellite_lab_log.json'));
+	assert.ok(satelliteLabScriptContents.includes('ava_satellite_lab_log.txt'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
