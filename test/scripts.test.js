@@ -622,7 +622,7 @@ test('AVA 01610 SATELLITE LAB script should parse without PowerShell syntax erro
 	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
 });
 
-test('AVA 01610 SATELLITE LAB script should define Ground Station, Relais, and Satellites with custom keys', () => {
+test('AVA 01610 SATELLITE LAB script should define isolated Ground Station and satellite keys', () => {
 	assert.ok(satelliteLabScriptContents.includes('Mock-Bodenstation (01610)'));
 	assert.ok(satelliteLabScriptContents.includes('Relais (Kompromittiert)'));
 	assert.ok(satelliteLabScriptContents.includes('Satellit A'));
@@ -640,6 +640,21 @@ test('AVA 01610 SATELLITE LAB script should simulate relay compromise and signat
 	assert.ok(satelliteLabScriptContents.includes('ava_satellite_lab_report.html'));
 	assert.ok(satelliteLabScriptContents.includes('ava_satellite_lab_log.json'));
 	assert.ok(satelliteLabScriptContents.includes('ava_satellite_lab_log.txt'));
+});
+
+test('AVA 01610 SATELLITE LAB should use standard HMAC, bind routing fields, and reject replays', () => {
+	assert.ok(satelliteLabScriptContents.includes('HMACSHA256'));
+	assert.ok(satelliteLabScriptContents.includes('CryptographicOperations]::FixedTimeEquals'));
+	assert.ok(satelliteLabScriptContents.includes('Get-SignedPayloadJson'));
+	assert.ok(satelliteLabScriptContents.includes("Source  = $Source"));
+	assert.ok(satelliteLabScriptContents.includes("Target  = $Target"));
+	assert.ok(satelliteLabScriptContents.includes('REPLAY_REJECTED'));
+	assert.ok(satelliteLabScriptContents.includes('HashSet[string]'));
+});
+
+test('AVA 01610 SATELLITE LAB report should not expose satellite keys', () => {
+	assert.ok(satelliteLabScriptContents.includes('GESCHÜTZT – nicht im Bericht gespeichert'));
+	assert.ok(!satelliteLabScriptContents.includes('<code>$($sat.Key)</code>'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
