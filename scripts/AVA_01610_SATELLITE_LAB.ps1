@@ -32,36 +32,85 @@ function Ensure-AllDirs {
 }
 
 # Kryptografische Hilfsfunktionen
-function Get-Sha256 {
-	param([string]$Text)
-	$sha = [System.Security.Cryptography.SHA256]::Create()
-	$bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
-	(($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('x2') }) -join '')
+function Get-SignedPayloadJson {
+	param(
+		[string]$Source,
+		[string]$Target,
+		[hashtable]$Command
+	)
+	# Source und Target gehoeren zum authentifizierten Datenbereich.
+	[ordered]@{
+		Version = 1
+		Source  = $Source
+		Target  = $Target
+		Command = $Command
+	} | ConvertTo-Json -Depth 10 -Compress
+}
+
+function Get-HmacSha256 {
+	param(
+		[string]$Text,
+		[string]$Key
+	)
+	$keyBytes = [System.Text.Encoding]::UTF8.GetBytes($Key)
+	$textBytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
+	$hmac = [System.Security.Cryptography.HMACSHA256]::new($keyBytes)
+	try {
+		return $hmac.ComputeHash($textBytes)
+	} finally {
+		$hmac.Dispose()
+	}
+}
+
+function ConvertTo-Hex {
+	param([byte[]]$Bytes)
+	(($Bytes | ForEach-Object { $_.ToString('x2') }) -join '')
+}
+
+function Test-FixedTimeSignature {
+	param(
+		[byte[]]$Expected,
+		[string]$ActualHex
+	)
+	try {
+		if ($ActualHex.Length -ne ($Expected.Length * 2)) { return $false }
+		$actual = [byte[]]::new($Expected.Length)
+		for ($i = 0; $i -lt $Expected.Length; $i++) {
+			$actual[$i] = [Convert]::ToByte($ActualHex.Substring($i * 2, 2), 16)
+		}
+		return [System.Security.Cryptography.CryptographicOperations]::FixedTimeEquals($Expected, $actual)
+	} catch {
+		return $false
+	}
 }
 
 function Sign-Command {
 	param(
+		[string]$Source,
+		[string]$Target,
 		[hashtable]$Command,
 		[string]$Key
 	)
-	$json = $Command | ConvertTo-Json -Compress
-	$signature = Get-Sha256 -Text ($json + $Key)
-	return $signature
+	$json = Get-SignedPayloadJson -Source $Source -Target $Target -Command $Command
+	ConvertTo-Hex -Bytes (Get-HmacSha256 -Text $json -Key $Key)
 }
 
 function Verify-Command {
 	param(
+		[string]$Source,
+		[string]$Target,
 		[hashtable]$Command,
 		[string]$Signature,
 		[string]$Key
 	)
-	$json = $Command | ConvertTo-Json -Compress
-	$expected = Get-Sha256 -Text ($json + $Key)
-	return ($expected -eq $Signature)
+	$json = Get-SignedPayloadJson -Source $Source -Target $Target -Command $Command
+	$expected = Get-HmacSha256 -Text $json -Key $Key
+	Test-FixedTimeSignature -Expected $expected -ActualHex $Signature
 }
 
 # Zustand und Logging
 $Events = [System.Collections.Generic.List[PSCustomObject]]::new()
+$SeenNonces = @{}
 
 function Log-Event {
 	param(
@@ -166,9 +215,18 @@ function Receive-Packet {
 	$sig = $Packet.Signature
 	$source = $Packet.Source
 	
-	$isValid = Verify-Command -Command $cmd -Signature $sig -Key $sat.Key
+	$isValid = Verify-Command -Source $source -Target $SatelliteName -Command $cmd -Signature $sig -Key $sat.Key
 	
 	if ($isValid) {
+		$nonceKey = [string]$cmd.Nonce
+		if (-not $SeenNonces.ContainsKey($SatelliteName)) {
+			$SeenNonces[$SatelliteName] = [System.Collections.Generic.HashSet[string]]::new()
+		}
+		if (-not $SeenNonces[$SatelliteName].Add($nonceKey)) {
+			Log-Event -Component $SatelliteName -Type 'REPLAY_REJECTED' -Severity 'CRITICAL' -Message "Replay erkannt: Nonce '$nonceKey' wurde bereits verwendet. Befehl VERWORFEN." -Data $Packet
+			$sat.TelemetryHistory.Add("VERWORFEN: Replay mit Nonce '$nonceKey'.")
+			return
+		}
 		$action = $cmd.Action
 		$params = $cmd.Params
 		
@@ -214,7 +272,7 @@ function Build-HtmlReport {
 			<p><strong>Höhe:</strong> $($sat.Altitude) km</p>
 			<p><strong>Energie:</strong> $($sat.Power)%</p>
 			<p><strong>Status:</strong> <span class='status-$($sat.Status)'>$($sat.Status)</span></p>
-			<p><strong>Schlüssel:</strong> <code>$($sat.Key)</code></p>
+			<p><strong>Schlüssel:</strong> <code>GESCHÜTZT – nicht im Bericht gespeichert</code></p>
 			<h4>Ereignis-Historie:</h4>
 			<ul>$hist</ul>
 		</div>
@@ -363,11 +421,11 @@ function Start-Simulation {
 	Write-Host '--- Phase 1: Legitime Befehle der Bodenstation ---' -ForegroundColor Yellow
 	
 	$cmdA = @{ Action = 'AdjustAltitude'; Params = @{ Altitude = 455 }; Nonce = 10001 }
-	$sigA = Sign-Command -Command $cmdA -Key $Bodenstation.Keys['Satellit A']
+	$sigA = Sign-Command -Source $Bodenstation.Name -Target 'Satellit A' -Command $cmdA -Key $Bodenstation.Keys['Satellit A']
 	Transmit-Message -Source $Bodenstation.Name -TargetSatellite 'Satellit A' -Command $cmdA -Signature $sigA
 	
 	$cmdB = @{ Action = 'AdjustAltitude'; Params = @{ Altitude = 20210 }; Nonce = 10002 }
-	$sigB = Sign-Command -Command $cmdB -Key $Bodenstation.Keys['Satellit B']
+	$sigB = Sign-Command -Source $Bodenstation.Name -Target 'Satellit B' -Command $cmdB -Key $Bodenstation.Keys['Satellit B']
 	Transmit-Message -Source $Bodenstation.Name -TargetSatellite 'Satellit B' -Command $cmdB -Signature $sigB
 	
 	Write-Host ''
@@ -394,6 +452,13 @@ function Start-Simulation {
 	$TxtPath = Join-Path $ReportDir 'ava_satellite_lab_log.txt'
 	$HtmlPath = Join-Path $ReportDir 'ava_satellite_lab_report.html'
 	
+	# Abschlussereignis vor dem Export erfassen, damit alle Ausgaben vollstaendig sind.
+	Log-Event -Component 'System' -Type 'SIM_COMPLETE' -Severity 'INFO' -Message "Simulation beendet. Berichte werden gespeichert unter: $Desktop" -Data @{
+		Json = $JsonPath
+		Txt = $TxtPath
+		Html = $HtmlPath
+	}
+
 	# JSON Protokoll speichern
 	$Events | ConvertTo-Json -Depth 10 | Out-File -FilePath $JsonPath -Encoding UTF8
 	
@@ -413,12 +478,7 @@ function Start-Simulation {
 	# HTML-Bericht speichern
 	$html = Build-HtmlReport
 	$html | Out-File -FilePath $HtmlPath -Encoding UTF8
-	
-	Log-Event -Component 'System' -Type 'SIM_COMPLETE' -Severity 'INFO' -Message "Simulation beendet. Berichte erfolgreich gespeichert unter: $Desktop" -Data @{
-		Json = $JsonPath
-		Txt = $TxtPath
-		Html = $HtmlPath
-	}
+
 }
 
 Start-Simulation
