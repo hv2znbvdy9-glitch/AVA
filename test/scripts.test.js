@@ -660,6 +660,7 @@ test('AVA 01610 SATELLITE LAB should use ephemeral keys and explicit nested key 
 	assert.ok(satelliteLabScriptContents.includes("$Bodenstation['Keys']['Satellit A']"));
 	assert.ok(!satelliteLabScriptContents.includes('$Bodenstation.Keys['));
 	assert.ok(!satelliteLabScriptContents.includes('SecretKey_SatA_01610_Ava_Safe'));
+	assert.ok(!/[^\x00-\x7F]/.test(satelliteLabScriptContents));
 });
 
 test('AVA 01610 SATELLITE LAB should stay local and avoid privileged system changes', () => {
