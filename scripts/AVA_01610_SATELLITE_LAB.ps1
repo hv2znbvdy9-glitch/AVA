@@ -295,8 +295,6 @@ function Receive-Packet {
 function Build-HtmlReport {
 	$rows = foreach ($e in $Events) {
 		$sevClass = "sev-$($e.Severity)"
-		$dataStr = $e.Data | ConvertTo-Json -Depth 5 -Compress
-		$dataEncoded = [System.Net.WebUtility]::HtmlEncode($dataStr)
 		"<tr>
 			<td>$($e.Timestamp)</td>
 			<td><strong>$($e.Component)</strong></td>
@@ -537,4 +535,3 @@ function Start-Simulation {
 }
 
 Start-Simulation
-
