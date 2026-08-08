@@ -1,22 +1,33 @@
 #requires -Version 5.1
 <#
 AVA 01610 SATELLITENLABOR
-Lokal / Defensiv / Read-Only / Simulation
+Lokal / Defensiv / Simulation
 
 Ein sicheres Simulationsmodell fuer das lokale AVA-01610-Satellitenlabor.
-Keine echten Angriffe, Exploits oder Systemaenderungen.
+Keine echten Angriffe, Exploits, Netzwerkzugriffe oder Aenderungen an der
+Windows-Sicherheitskonfiguration. Optional werden lokale Berichte geschrieben.
 #>
+
+[CmdletBinding()]
+param(
+	[string]$OutputDirectory,
+	[switch]$NoReportFiles
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # Pfade fuer Protokolle und Berichte festlegen
-$Desktop = [System.IO.Path]::Combine([Environment]::GetFolderPath('Desktop'), 'AVA_01610_SATELLITE_LAB')
-if (-not $env:USERPROFILE) {
-	$Desktop = Join-Path $PWD 'AVA_01610_SATELLITE_LAB'
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+	$DesktopPath = [Environment]::GetFolderPath('Desktop')
+	if ([string]::IsNullOrWhiteSpace($DesktopPath)) {
+		$DesktopPath = $PWD.Path
+	}
+	$OutputDirectory = Join-Path $DesktopPath 'AVA_01610_SATELLITE_LAB'
 }
-$LogDir = Join-Path $Desktop 'Logs'
-$ReportDir = Join-Path $Desktop 'Reports'
+$OutputRoot = [System.IO.Path]::GetFullPath($OutputDirectory)
+$LogDir = Join-Path $OutputRoot 'Logs'
+$ReportDir = Join-Path $OutputRoot 'Reports'
 
 function Ensure-Dir {
 	param([string]$Path)
@@ -26,7 +37,7 @@ function Ensure-Dir {
 }
 
 function Ensure-AllDirs {
-	foreach ($d in @($Desktop, $LogDir, $ReportDir)) {
+	foreach ($d in @($OutputRoot, $LogDir, $ReportDir)) {
 		Ensure-Dir $d
 	}
 }
@@ -50,11 +61,10 @@ function Get-SignedPayloadJson {
 function Get-HmacSha256 {
 	param(
 		[string]$Text,
-		[string]$Key
+		[byte[]]$Key
 	)
-	$keyBytes = [System.Text.Encoding]::UTF8.GetBytes($Key)
 	$textBytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
-	$hmac = [System.Security.Cryptography.HMACSHA256]::new($keyBytes)
+	$hmac = [System.Security.Cryptography.HMACSHA256]::new($Key)
 	try {
 		return $hmac.ComputeHash($textBytes)
 	} finally {
@@ -67,21 +77,44 @@ function ConvertTo-Hex {
 	(($Bytes | ForEach-Object { $_.ToString('x2') }) -join '')
 }
 
-function Test-FixedTimeSignature {
+function Test-ByteArrayEquality {
 	param(
-		[byte[]]$Expected,
-		[string]$ActualHex
+		[byte[]]$Left,
+		[byte[]]$Right
 	)
-	try {
-		if ($ActualHex.Length -ne ($Expected.Length * 2)) { return $false }
-		$actual = [byte[]]::new($Expected.Length)
-		for ($i = 0; $i -lt $Expected.Length; $i++) {
-			$actual[$i] = [Convert]::ToByte($ActualHex.Substring($i * 2, 2), 16)
-		}
-		return [System.Security.Cryptography.CryptographicOperations]::FixedTimeEquals($Expected, $actual)
-	} catch {
-		return $false
+	if ($Left.Length -ne $Right.Length) { return $false }
+	[int]$Difference = 0
+	for ($Index = 0; $Index -lt $Left.Length; $Index++) {
+		$Difference = $Difference -bor ($Left[$Index] -bxor $Right[$Index])
 	}
+	return ($Difference -eq 0)
+}
+
+function ConvertFrom-Hex {
+	param([string]$Hex)
+	if ([string]::IsNullOrWhiteSpace($Hex) -or ($Hex.Length % 2) -ne 0) {
+		return $null
+	}
+	try {
+		$Bytes = [byte[]]::new($Hex.Length / 2)
+		for ($Index = 0; $Index -lt $Bytes.Length; $Index++) {
+			$Bytes[$Index] = [Convert]::ToByte($Hex.Substring($Index * 2, 2), 16)
+		}
+		return ,$Bytes
+	} catch {
+		return $null
+	}
+}
+
+function New-RandomKey {
+	[byte[]]$Key = [byte[]]::new(32)
+	$Random = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+	try {
+		$Random.GetBytes($Key)
+	} finally {
+		$Random.Dispose()
+	}
+	return ,$Key
 }
 
 function Sign-Command {
@@ -89,7 +122,7 @@ function Sign-Command {
 		[string]$Source,
 		[string]$Target,
 		[hashtable]$Command,
-		[string]$Key
+		[byte[]]$Key
 	)
 	$json = Get-SignedPayloadJson -Source $Source -Target $Target -Command $Command
 	ConvertTo-Hex -Bytes (Get-HmacSha256 -Text $json -Key $Key)
@@ -101,11 +134,13 @@ function Verify-Command {
 		[string]$Target,
 		[hashtable]$Command,
 		[string]$Signature,
-		[string]$Key
+		[byte[]]$Key
 	)
 	$json = Get-SignedPayloadJson -Source $Source -Target $Target -Command $Command
 	$expected = Get-HmacSha256 -Text $json -Key $Key
-	Test-FixedTimeSignature -Expected $expected -ActualHex $Signature
+	$actual = ConvertFrom-Hex -Hex $Signature
+	if ($null -eq $actual) { return $false }
+	Test-ByteArrayEquality -Left $expected -Right $actual
 }
 
 # Zustand und Logging
@@ -139,6 +174,11 @@ function Log-Event {
 	Write-Host "[$Component] [$Severity] $Message" -ForegroundColor $color
 }
 
+# Ephemere Demo-Schluessel: nur im Speicher und fuer jeden Lauf neu.
+$SatKeyA = New-RandomKey
+$SatKeyB = New-RandomKey
+$SatKeyC = New-RandomKey
+
 # Definition der Satelliten
 $Satellites = @{
 	'Satellit A' = @{
@@ -147,7 +187,7 @@ $Satellites = @{
 		Altitude = 450
 		Power = 100
 		Status = 'Active'
-		Key = 'SecretKey_SatA_01610_Ava_Safe'
+		Key = $SatKeyA
 		TelemetryHistory = [System.Collections.Generic.List[string]]::new()
 	}
 	'Satellit B' = @{
@@ -156,7 +196,7 @@ $Satellites = @{
 		Altitude = 20200
 		Power = 100
 		Status = 'Active'
-		Key = 'SecretKey_SatB_01610_Ava_Safe'
+		Key = $SatKeyB
 		TelemetryHistory = [System.Collections.Generic.List[string]]::new()
 	}
 	'Satellit C' = @{
@@ -165,7 +205,7 @@ $Satellites = @{
 		Altitude = 35786
 		Power = 100
 		Status = 'Active'
-		Key = 'SecretKey_SatC_01610_Ava_Safe'
+		Key = $SatKeyC
 		TelemetryHistory = [System.Collections.Generic.List[string]]::new()
 	}
 }
@@ -174,11 +214,13 @@ $Satellites = @{
 $Bodenstation = @{
 	Name = 'Mock-Bodenstation (01610)'
 	Keys = @{
-		'Satellit A' = 'SecretKey_SatA_01610_Ava_Safe'
-		'Satellit B' = 'SecretKey_SatB_01610_Ava_Safe'
-		'Satellit C' = 'SecretKey_SatC_01610_Ava_Safe'
+		'Satellit A' = $SatKeyA
+		'Satellit B' = $SatKeyB
+		'Satellit C' = $SatKeyC
 	}
 }
+
+$AllowedActions = @('AdjustAltitude', 'ResetPower')
 
 function Transmit-Message {
 	param(
@@ -231,6 +273,11 @@ function Receive-Packet {
 		$params = $cmd.Params
 		
 		Log-Event -Component $SatelliteName -Type 'AUTH_SUCCESS' -Severity 'SUCCESS' -Message "Authentifizierung ERFOLGREICH fuer '$action' von '$source'." -Data $Packet
+		if ($AllowedActions -notcontains $action) {
+			Log-Event -Component $SatelliteName -Type 'COMMAND_REJECTED' -Severity 'WARNING' -Message "Nicht freigegebene Aktion '$action' wurde trotz gueltiger Signatur verworfen." -Data $Packet
+			$sat.TelemetryHistory.Add("VERWORFEN: Nicht freigegebene Aktion '$action'.")
+			return
+		}
 		
 		if ($action -eq 'AdjustAltitude') {
 			$sat.Altitude = $params.Altitude
@@ -408,7 +455,9 @@ code {
 
 # Ausfuehrung der Simulation
 function Start-Simulation {
-	Ensure-AllDirs
+	if (-not $NoReportFiles) {
+		Ensure-AllDirs
+	}
 	
 	Write-Host '==================================================' -ForegroundColor Green
 	Write-Host '   AVA-01610 LOKALES SATELLITENLABOR SIMULATION   ' -ForegroundColor Green
@@ -421,12 +470,15 @@ function Start-Simulation {
 	Write-Host '--- Phase 1: Legitime Befehle der Bodenstation ---' -ForegroundColor Yellow
 	
 	$cmdA = @{ Action = 'AdjustAltitude'; Params = @{ Altitude = 455 }; Nonce = 10001 }
-	$sigA = Sign-Command -Source $Bodenstation.Name -Target 'Satellit A' -Command $cmdA -Key $Bodenstation.Keys['Satellit A']
+	$sigA = Sign-Command -Source $Bodenstation.Name -Target 'Satellit A' -Command $cmdA -Key $Bodenstation['Keys']['Satellit A']
 	Transmit-Message -Source $Bodenstation.Name -TargetSatellite 'Satellit A' -Command $cmdA -Signature $sigA
 	
 	$cmdB = @{ Action = 'AdjustAltitude'; Params = @{ Altitude = 20210 }; Nonce = 10002 }
-	$sigB = Sign-Command -Source $Bodenstation.Name -Target 'Satellit B' -Command $cmdB -Key $Bodenstation.Keys['Satellit B']
+	$sigB = Sign-Command -Source $Bodenstation.Name -Target 'Satellit B' -Command $cmdB -Key $Bodenstation['Keys']['Satellit B']
 	Transmit-Message -Source $Bodenstation.Name -TargetSatellite 'Satellit B' -Command $cmdB -Signature $sigB
+
+	# Derselbe gueltig signierte Befehl muss beim zweiten Empfang abgewiesen werden.
+	Transmit-Message -Source $Bodenstation.Name -TargetSatellite 'Satellit A' -Command $cmdA -Signature $sigA
 	
 	Write-Host ''
 	
@@ -453,10 +505,13 @@ function Start-Simulation {
 	$HtmlPath = Join-Path $ReportDir 'ava_satellite_lab_report.html'
 	
 	# Abschlussereignis vor dem Export erfassen, damit alle Ausgaben vollstaendig sind.
-	Log-Event -Component 'System' -Type 'SIM_COMPLETE' -Severity 'INFO' -Message "Simulation beendet. Berichte werden gespeichert unter: $Desktop" -Data @{
+	Log-Event -Component 'System' -Type 'SIM_COMPLETE' -Severity 'INFO' -Message "Simulation beendet." -Data @{
 		Json = $JsonPath
 		Txt = $TxtPath
 		Html = $HtmlPath
+	}
+	if ($NoReportFiles) {
+		return
 	}
 
 	# JSON Protokoll speichern
@@ -468,7 +523,7 @@ function Start-Simulation {
 	$txtSummary.AppendLine('   AVA-01610 LOKALES SATELLITENLABOR PROTOKOLL   ') | Out-Null
 	$txtSummary.AppendLine('==================================================') | Out-Null
 	$txtSummary.AppendLine("Generiert am: $(Get-Date)") | Out-Null
-	$txtSummary.AppendLine("Pfad: $Desktop") | Out-Null
+	$txtSummary.AppendLine("Pfad: $OutputRoot") | Out-Null
 	$txtSummary.AppendLine() | Out-Null
 	foreach ($e in $Events) {
 		$txtSummary.AppendLine("[$($e.Timestamp)] [$($e.Component)] [$($e.Severity)] [$($e.Type)] $($e.Message)") | Out-Null
