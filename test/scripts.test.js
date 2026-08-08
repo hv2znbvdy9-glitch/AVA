@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const {execFileSync} = require('child_process');
 
@@ -46,6 +47,8 @@ const safeAuditStarterPath = path.join(__dirname, '..', 'scripts', 'START_AVA_SA
 const safeAuditStarterContents = fs.readFileSync(safeAuditStarterPath, 'utf8');
 const devito01610ScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_DEVITO_01610_SAFE_AUDIT.ps1');
 const devito01610ScriptContents = fs.readFileSync(devito01610ScriptPath, 'utf8');
+const satelliteLabScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_01610_SATELLITE_LAB.ps1');
+const satelliteLabScriptContents = fs.readFileSync(satelliteLabScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -629,6 +632,65 @@ test('AVA SOC Portal V4 script should define Graph Engine features', () => {
 	assert.ok(v4ScriptContents.includes('function Build-Portal'));
 	assert.ok(v4ScriptContents.includes('graph_v4.json'));
 	assert.ok(v4ScriptContents.includes('ava_portal_v4.html'));
+});
+
+// ---------------------------------------------------------------------------
+// AVA 01610 SATELLITE LAB — local defensive simulation
+// ---------------------------------------------------------------------------
+
+test('AVA 01610 SATELLITE LAB script should parse without PowerShell syntax errors', () => {
+	const escapedPath = satelliteLabScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		'$tokens = $null',
+		'$errors = $null',
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		'if ($errors.Count -gt 0) {',
+		'\t$errors | ForEach-Object { $_.Message }',
+		'\texit 1',
+		'}',
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA 01610 SATELLITE LAB should use ephemeral keys and explicit nested key lookup', () => {
+	assert.ok(satelliteLabScriptContents.includes('RandomNumberGenerator'));
+	assert.ok(satelliteLabScriptContents.includes('HMACSHA256'));
+	assert.ok(satelliteLabScriptContents.includes('Test-ByteArrayEquality'));
+	assert.ok(satelliteLabScriptContents.includes("$Bodenstation['Keys']['Satellit A']"));
+	assert.ok(!satelliteLabScriptContents.includes('$Bodenstation.Keys['));
+	assert.ok(!satelliteLabScriptContents.includes('SecretKey_SatA_01610_Ava_Safe'));
+});
+
+test('AVA 01610 SATELLITE LAB should stay local and avoid privileged system changes', () => {
+	const forbidden = [
+		'Invoke-WebRequest', 'Invoke-RestMethod', 'Register-ScheduledTask',
+		'New-NetFirewallRule', 'Set-ItemProperty', 'Set-Service', 'Start-Process',
+	];
+	for (const command of forbidden) {
+		assert.ok(!satelliteLabScriptContents.includes(command), `${command} must not be present`);
+	}
+});
+
+test('AVA 01610 SATELLITE LAB should run and reject forged and replayed commands', () => {
+	const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ava-01610-lab-'));
+	try {
+		execFileSync('pwsh', [
+			'-NoProfile',
+			'-File', satelliteLabScriptPath,
+			'-OutputDirectory', outputRoot,
+		], {stdio: 'pipe'});
+		const reportPath = path.join(outputRoot, 'Reports', 'ava_satellite_lab_log.json');
+		const events = JSON.parse(fs.readFileSync(reportPath, 'utf8').replace(/^\uFEFF/, ''));
+		const types = events.map(event => event.Type);
+		assert.ok(types.includes('AUTH_SUCCESS'));
+		assert.ok(types.includes('AUTH_FAILURE'));
+		assert.ok(types.includes('REPLAY_REJECTED'));
+		assert.ok(types.includes('SIM_COMPLETE'));
+		assert.ok(!fs.readFileSync(reportPath, 'utf8').includes('SecretKey_'));
+	} finally {
+		fs.rmSync(outputRoot, {recursive: true, force: true});
+	}
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
