@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const {execFileSync} = require('child_process');
 
@@ -622,15 +623,15 @@ test('AVA 01610 SATELLITE LAB script should parse without PowerShell syntax erro
 	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
 });
 
-test('AVA 01610 SATELLITE LAB script should define isolated Ground Station and satellite keys', () => {
+test('AVA 01610 SATELLITE LAB script should define isolated Ground Station and ephemeral keys', () => {
 	assert.ok(satelliteLabScriptContents.includes('Mock-Bodenstation (01610)'));
 	assert.ok(satelliteLabScriptContents.includes('Relais (Kompromittiert)'));
 	assert.ok(satelliteLabScriptContents.includes('Satellit A'));
 	assert.ok(satelliteLabScriptContents.includes('Satellit B'));
 	assert.ok(satelliteLabScriptContents.includes('Satellit C'));
-	assert.ok(satelliteLabScriptContents.includes('SecretKey_SatA_01610_Ava_Safe'));
-	assert.ok(satelliteLabScriptContents.includes('SecretKey_SatB_01610_Ava_Safe'));
-	assert.ok(satelliteLabScriptContents.includes('SecretKey_SatC_01610_Ava_Safe'));
+	assert.ok(satelliteLabScriptContents.includes('New-RandomKey'));
+	assert.ok(satelliteLabScriptContents.includes('RandomNumberGenerator'));
+	assert.ok(!satelliteLabScriptContents.includes('SecretKey_SatA_01610_Ava_Safe'));
 });
 
 test('AVA 01610 SATELLITE LAB script should simulate relay compromise and signature verification failure', () => {
@@ -644,17 +645,41 @@ test('AVA 01610 SATELLITE LAB script should simulate relay compromise and signat
 
 test('AVA 01610 SATELLITE LAB should use standard HMAC, bind routing fields, and reject replays', () => {
 	assert.ok(satelliteLabScriptContents.includes('HMACSHA256'));
-	assert.ok(satelliteLabScriptContents.includes('CryptographicOperations]::FixedTimeEquals'));
+	assert.ok(satelliteLabScriptContents.includes('Test-ByteArrayEquality'));
 	assert.ok(satelliteLabScriptContents.includes('Get-SignedPayloadJson'));
 	assert.ok(satelliteLabScriptContents.includes("Source  = $Source"));
 	assert.ok(satelliteLabScriptContents.includes("Target  = $Target"));
 	assert.ok(satelliteLabScriptContents.includes('REPLAY_REJECTED'));
 	assert.ok(satelliteLabScriptContents.includes('HashSet[string]'));
+	assert.ok(satelliteLabScriptContents.includes("$Bodenstation['Keys']['Satellit A']"));
+	assert.ok(!satelliteLabScriptContents.includes('$Bodenstation.Keys['));
 });
 
 test('AVA 01610 SATELLITE LAB report should not expose satellite keys', () => {
 	assert.ok(satelliteLabScriptContents.includes('GESCHÜTZT – nicht im Bericht gespeichert'));
 	assert.ok(!satelliteLabScriptContents.includes('<code>$($sat.Key)</code>'));
+});
+
+test('AVA 01610 SATELLITE LAB should run locally and reject forged and replayed commands', () => {
+	const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ava-01610-lab-'));
+	try {
+		execFileSync('pwsh', [
+			'-NoProfile',
+			'-File', satelliteLabScriptPath,
+			'-OutputDirectory', outputRoot,
+		], {stdio: 'pipe'});
+		const reportPath = path.join(outputRoot, 'Reports', 'ava_satellite_lab_log.json');
+		const events = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+		const types = events.map(event => event.Type);
+		assert.ok(types.includes('AUTH_SUCCESS'));
+		assert.ok(types.includes('AUTH_FAILURE'));
+		assert.ok(types.includes('REPLAY_REJECTED'));
+		assert.ok(types.includes('SIM_COMPLETE'));
+		const reportText = fs.readFileSync(reportPath, 'utf8');
+		assert.ok(!reportText.includes('SecretKey_'));
+	} finally {
+		fs.rmSync(outputRoot, {recursive: true, force: true});
+	}
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
