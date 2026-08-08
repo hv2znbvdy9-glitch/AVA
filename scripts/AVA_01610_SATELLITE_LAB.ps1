@@ -314,10 +314,10 @@ function Build-HtmlReport {
 		<div class='card sat-card'>
 			<h3>$name ($($sat.Id))</h3>
 			<p><strong>Orbit:</strong> $($sat.Orbit)</p>
-			<p><strong>Höhe:</strong> $($sat.Altitude) km</p>
+			<p><strong>Hoehe:</strong> $($sat.Altitude) km</p>
 			<p><strong>Energie:</strong> $($sat.Power)%</p>
 			<p><strong>Status:</strong> <span class='status-$($sat.Status)'>$($sat.Status)</span></p>
-			<p><strong>Schlüssel:</strong> <code>GESCHÜTZT – nicht im Bericht gespeichert</code></p>
+			<p><strong>Schluessel:</strong> <code>GESCHUETZT - nicht im Bericht gespeichert</code></p>
 			<h4>Ereignis-Historie:</h4>
 			<ul>$hist</ul>
 		</div>
@@ -409,18 +409,18 @@ code {
 </head>
 <body>
 <div class="header">
-	<div class="big-title">🛡️ LOKALES AVA-01610-SATELLITENLABOR 🛡️</div>
-	<div class="sub-title">Wissenschaftliche Simulation: Manipulationsversuch über kompromittiertes Relais</div>
+	<div class="big-title">LOKALES AVA-01610-SATELLITENLABOR</div>
+	<div class="sub-title">Wissenschaftliche Simulation: Manipulationsversuch ueber kompromittiertes Relais</div>
 </div>
 
 <div class="card" style="margin-bottom: 20px;">
-	<h2>Architektur-Übersicht</h2>
-	<p>Dieses Labor simuliert eine Mock-Bodenstation, die kryptografisch signierte Steuerbefehle an drei Satelliten über ein Relais sendet.</p>
+	<h2>Architektur-Uebersicht</h2>
+	<p>Dieses Labor simuliert eine Mock-Bodenstation, die kryptografisch signierte Steuerbefehle an drei Satelliten ueber ein Relais sendet.</p>
 	<ul>
-		<li><strong>Satellit A:</strong> Schützt sich mit seinem eigenen geheimen Schlüssel.</li>
-		<li><strong>Satellit B:</strong> Schützt sich mit einem anderen geheimen Schlüssel.</li>
-		<li><strong>Satellit C:</strong> Schützt sich mit einem anderen geheimen Schlüssel.</li>
-		<li><strong>Relais:</strong> Besitzt keine Schlüssel, darf Befehle nur weiterleiten. Bei einer Kompromittierung des Relais werden gefälschte Befehle gesendet, die von den Satelliten abgewiesen werden müssen.</li>
+		<li><strong>Satellit A:</strong> Schuetzt sich mit seinem eigenen geheimen Schluessel.</li>
+		<li><strong>Satellit B:</strong> Schuetzt sich mit einem anderen geheimen Schluessel.</li>
+		<li><strong>Satellit C:</strong> Schuetzt sich mit einem anderen geheimen Schluessel.</li>
+		<li><strong>Relais:</strong> Besitzt keine Schluessel, darf Befehle nur weiterleiten. Bei einer Kompromittierung des Relais werden gefaelschte Befehle gesendet, die von den Satelliten abgewiesen werden muessen.</li>
 	</ul>
 </div>
 
@@ -429,7 +429,7 @@ code {
 </div>
 
 <div class="card">
-	<h2>Ereignis-Protokoll (vollständig protokolliert)</h2>
+	<h2>Ereignis-Protokoll (vollstaendig protokolliert)</h2>
 	<table>
 		<thead>
 			<tr>
