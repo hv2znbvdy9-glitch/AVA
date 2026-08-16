@@ -23,4 +23,4 @@ jobs:
       - name: Run repository tests
         run: npm test
 
-# Safe trigger marker: verified-safe-run-2026-08-16T02-16-56-451Z
+# Safe trigger marker: verified-safe-run-2026-08-16T17-03-00+02-00
