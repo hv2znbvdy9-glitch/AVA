@@ -102,3 +102,20 @@ Die belastbare Aussage lautet:
 > Materie wird durch Felder, Quantenzustände und Wechselwirkungen beschrieben. Information ist dabei zentral. Ob sie die tiefste Grundlage der Realität bildet, ist offen.
 
 Kopf klar. Begriffe sauber. Beobachtung, Interpretation und Spekulation getrennt.
+
+## Quellen und Einstieg
+
+- John A. Wheeler, *Recent Thinking about the Nature of the Physical World:
+  It from Bit* (1992):
+  <https://doi.org/10.1111/j.1749-6632.1992.tb17083.x>
+- Hugh Everett III, *“Relative State” Formulation of Quantum Mechanics*
+  (1957): <https://doi.org/10.1103/RevModPhys.29.454>
+- Wojciech H. Zurek, *Decoherence, einselection, and the quantum origins of
+  the classical* (2003): <https://doi.org/10.1103/RevModPhys.75.715>
+- NIST, *Putting Einstein to the Test*:
+  <https://www.nist.gov/atomic-clocks/a-powerful-tool-for-science/putting-einstein-test>
+- NASA, *100 Years of General Relativity*:
+  <https://asd.gsfc.nasa.gov/blueshift/index.php/2015/11/25/100-years-of-general-relativity/>
+- National Institute of Biomedical Imaging and Bioengineering, *Magnetic
+  Resonance Imaging (MRI)*:
+  <https://www.nibib.nih.gov/science-education/science-topics/magnetic-resonance-imaging-mri>
