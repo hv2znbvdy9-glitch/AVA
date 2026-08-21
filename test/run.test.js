@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const os = require('os');
 const {run, runAll, runAsync, runAllParallel} = require('../src/run');
 
 let passed = 0;
@@ -56,8 +57,9 @@ async function main() {
 	});
 
 	await test('should accept a cwd option', () => {
-		const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
-		assert.strictEqual(result.stdout.trim(), '/tmp');
+		const cwd = os.tmpdir();
+		const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd});
+		assert.strictEqual(result.stdout.trim(), cwd);
 		assert.strictEqual(result.exitCode, 0);
 	});
 
@@ -114,8 +116,9 @@ async function main() {
 	});
 
 	await test('runAsync should accept a cwd option', async () => {
-		const result = await runAsync('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
-		assert.strictEqual(result.stdout.trim(), '/tmp');
+		const cwd = os.tmpdir();
+		const result = await runAsync('node -e "console.log(process.cwd())"', {silent: true, cwd});
+		assert.strictEqual(result.stdout.trim(), cwd);
 	});
 
 	// runAllParallel tests
@@ -145,12 +148,13 @@ async function main() {
 	await test('runAllParallel should run faster than sequential for independent commands', async () => {
 		const start = Date.now();
 		await runAllParallel(
-			['node -e "setTimeout(()=>{},200)"', 'node -e "setTimeout(()=>{},200)"'],
+			['node -e "setTimeout(()=>{},1000)"', 'node -e "setTimeout(()=>{},1000)"'],
 			{silent: true},
 		);
 		const elapsed = Date.now() - start;
-		// Two 200ms commands in parallel should finish well under 400ms
-		assert.ok(elapsed < 380, `Expected elapsed < 380ms but got ${elapsed}ms`);
+		// Two one-second commands should overlap while allowing for process startup
+		// variance across Linux, Windows, and macOS runners.
+		assert.ok(elapsed < 1800, `Expected elapsed < 1800ms but got ${elapsed}ms`);
 	});
 
 	console.log(`\n${passed} passing, ${failed} failing`);
