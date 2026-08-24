@@ -1,0 +1,124 @@
+name: AVA - Run Everywhere
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  ava-linux:
+    name: AVA on Linux
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run AVA Tests
+        run: npm test
+
+      - name: Run AVA CLI
+        run: npx ava "echo 'AVA running on Linux - SUCCESS'"
+
+  ava-windows:
+    name: AVA on Windows
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run AVA Tests
+        run: npm test
+
+      - name: Run AVA CLI
+        run: npx ava "echo 'AVA running on Windows - SUCCESS'"
+
+  ava-macos:
+    name: AVA on macOS
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run AVA Tests
+        run: npm test
+
+      - name: Run AVA CLI
+        run: npx ava "echo 'AVA running on macOS - SUCCESS'"
+
+  ava-safe-local-node:
+    name: AVA Safe Local Node
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Safe Local Node
+        run: npx ava --safe-local-node
+        continue-on-error: true
+
+  summary:
+    name: AVA Execution Summary
+    runs-on: ubuntu-latest
+    needs: [ava-linux, ava-windows, ava-macos, ava-safe-local-node]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "✅ AVA Execution Complete!"
+          echo "🐧 Linux: ${{ needs.ava-linux.result }}"
+          echo "🪟 Windows: ${{ needs.ava-windows.result }}"
+          echo "🍎 macOS: ${{ needs.ava-macos.result }}"
+          echo "🔒 Safe Local Node: ${{ needs.ava-safe-local-node.result }}"
