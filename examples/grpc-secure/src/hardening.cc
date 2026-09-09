@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <cctype>
 #include <charconv>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
-#include <limits>
 #include <stdexcept>
 #include <system_error>
 
