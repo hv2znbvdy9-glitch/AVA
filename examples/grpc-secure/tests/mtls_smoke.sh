@@ -90,7 +90,10 @@ server_pid=$!
 
 started=false
 for _ in $(seq 1 100); do
-	if grep -q '"event":"server_started"' "${server_log}" 2>/dev/null; then
+	port=$(sed -n \
+		's/.*"event":"server_started".*"port":\([0-9][0-9]*\).*/\1/p' \
+		"${server_log}" | tail -n 1)
+	if [[ "${port}" =~ ^[0-9]+$ ]]; then
 		started=true
 		break
 	fi
@@ -100,8 +103,6 @@ for _ in $(seq 1 100); do
 	sleep 0.1
 done
 [[ "${started}" == true ]] || fail 'server did not become ready'
-port=$(sed -n 's/.*"port":\([0-9][0-9]*\).*/\1/p' "${server_log}" | tail -n 1)
-[[ "${port}" =~ ^[0-9]+$ ]] || fail 'server did not report its selected port'
 ((port >= 1 && port <= 65535)) || fail 'server reported an invalid selected port'
 
 authorized_output=$(env \
