@@ -11,7 +11,7 @@ client_bin=$2
 openssl_bin=$3
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/ava-grpc-mtls.XXXXXXXX")
 server_pid=''
-port=$((42000 + ($$ % 10000)))
+port=$((20000 + (RANDOM % 30000)))
 server_log="${test_root}/server.log"
 
 cleanup() {

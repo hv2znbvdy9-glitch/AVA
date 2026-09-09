@@ -75,6 +75,12 @@ void TestBindValidation() {
 				 "IPv6 wildcard must be rejected by default");
 	ExpectThrows([] { ValidateBindAddress("[0:0:0:0:0:0:0:0]:50051", false); },
 				 "expanded IPv6 wildcard must be rejected by default");
+	ExpectThrows([] { ValidateBindAddress("0:50051", false); },
+				 "legacy numeric IPv4 wildcard must be rejected by default");
+	ExpectThrows([] { ValidateBindAddress("0x0:50051", false); },
+				 "hexadecimal IPv4 wildcard must be rejected by default");
+	ExpectThrows([] { ValidateBindAddress("[::ffff:0.0.0.0]:50051", false); },
+				 "IPv4-mapped wildcard must be rejected by default");
 	ExpectThrows([] { ValidateBindAddress(":50051", false); },
 				 "empty host must be rejected");
 	ExpectThrows([] { ValidateBindAddress("localhost:0", false); },
@@ -120,6 +126,13 @@ void TestInFlightLimiter() {
 	limiter.Release();
 	limiter.Release();
 	Check(limiter.active() == 0, "all leases should be released");
+	limiter.Release();
+	Check(limiter.active() == 0, "extra release must saturate at zero");
+	Check(limiter.TryAcquire(), "capacity should remain valid after an extra release");
+	Check(limiter.TryAcquire(), "second capacity slot should remain valid");
+	Check(!limiter.TryAcquire(), "extra release must not create additional capacity");
+	limiter.Release();
+	limiter.Release();
 }
 
 void TestRequiredFileChecks() {

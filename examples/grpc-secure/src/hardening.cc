@@ -6,11 +6,13 @@
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
+#include <memory>
 #include <stdexcept>
 #include <system_error>
 
 #if defined(__unix__) || defined(__APPLE__)
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <sys/stat.h>
 #endif
 
@@ -51,6 +53,15 @@ bool HasWhitespaceOrControlCharacter(const std::string& value) {
 	});
 }
 
+bool IsIpv6WildcardOrMappedAny(const struct in6_addr& address) {
+	if (IN6_IS_ADDR_UNSPECIFIED(&address)) {
+		return true;
+	}
+	return IN6_IS_ADDR_V4MAPPED(&address) && address.s6_addr[12] == 0U &&
+		address.s6_addr[13] == 0U && address.s6_addr[14] == 0U &&
+		address.s6_addr[15] == 0U;
+}
+
 bool IsWildcardHost(const std::string& host) {
 	if (host == "*") {
 		return true;
@@ -61,11 +72,41 @@ bool IsWildcardHost(const std::string& host) {
 		return true;
 	}
 	struct in6_addr ipv6 {};
-	if (inet_pton(AF_INET6, host.c_str(), &ipv6) == 1 && IN6_IS_ADDR_UNSPECIFIED(&ipv6)) {
+	if (inet_pton(AF_INET6, host.c_str(), &ipv6) == 1 && IsIpv6WildcardOrMappedAny(ipv6)) {
 		return true;
 	}
+
+	// The resolver accepts legacy numeric forms such as "0" and "0x0" that
+	// inet_pton() intentionally rejects. Resolve once during validation so those
+	// forms and hostnames resolving to an unspecified address fail closed.
+	struct addrinfo hints {};
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	struct addrinfo* raw_results = nullptr;
+	const int resolve_result = getaddrinfo(host.c_str(), nullptr, &hints, &raw_results);
+	if (resolve_result != 0) {
+		throw std::runtime_error(
+			"AVA_GRPC_BIND_ADDRESS host cannot be resolved: " +
+			std::string(gai_strerror(resolve_result)));
+	}
+	const std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> results(
+		raw_results, freeaddrinfo);
+	for (const struct addrinfo* entry = results.get(); entry != nullptr; entry = entry->ai_next) {
+		if (entry->ai_family == AF_INET) {
+			const auto* address = reinterpret_cast<const struct sockaddr_in*>(entry->ai_addr);
+			if (address->sin_addr.s_addr == htonl(INADDR_ANY)) {
+				return true;
+			}
+		} else if (entry->ai_family == AF_INET6) {
+			const auto* address = reinterpret_cast<const struct sockaddr_in6*>(entry->ai_addr);
+			if (IsIpv6WildcardOrMappedAny(address->sin6_addr)) {
+				return true;
+			}
+		}
+	}
 #else
-	if (host == "0.0.0.0" || host == "::" || host == "0:0:0:0:0:0:0:0") {
+	if (host == "0" || host == "0x0" || host == "0.0.0.0" || host == "::" ||
+		host == "0:0:0:0:0:0:0:0" || host == "::ffff:0.0.0.0") {
 		return true;
 	}
 #endif
@@ -362,9 +403,12 @@ bool InFlightLimiter::TryAcquire() {
 }
 
 void InFlightLimiter::Release() {
-	const int previous = active_.fetch_sub(1, std::memory_order_release);
-	if (previous <= 0) {
-		active_.store(0, std::memory_order_relaxed);
+	int current = active_.load(std::memory_order_relaxed);
+	while (current > 0) {
+		if (active_.compare_exchange_weak(
+				current, current - 1, std::memory_order_release, std::memory_order_relaxed)) {
+			return;
+		}
 	}
 }
 
