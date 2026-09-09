@@ -91,7 +91,7 @@ server_pid=$!
 started=false
 for _ in $(seq 1 100); do
 	port=$(sed -n \
-		's/.*"event":"server_started".*"port":\([0-9][0-9]*\).*/\1/p' \
+		's/.*"event":"server_started".*"port":\([0-9][0-9]*\)}$/\1/p' \
 		"${server_log}" | tail -n 1)
 	if [[ "${port}" =~ ^[0-9]+$ ]]; then
 		started=true
