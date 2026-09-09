@@ -1,0 +1,54 @@
+name: Secure gRPC C++ example
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/grpc-secure/**'
+      - '.github/workflows/grpc-secure-example.yml'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+    paths:
+      - 'examples/grpc-secure/**'
+      - '.github/workflows/grpc-secure-example.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grpc-secure-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install gRPC build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            cmake \
+            libgrpc++-dev \
+            libprotobuf-dev \
+            ninja-build \
+            openssl \
+            protobuf-compiler \
+            protobuf-compiler-grpc
+
+      - name: Configure
+        run: >-
+          cmake -S examples/grpc-secure -B build/grpc-secure -G Ninja
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build build/grpc-secure --parallel 2
+
+      - name: Test
+        run: ctest --test-dir build/grpc-secure --output-on-failure
