@@ -42,10 +42,10 @@ sudo apt-get install --no-install-recommends \
 Then configure, build, and test:
 
 ```bash
-cmake -S examples/grpc-secure -B build/grpc-secure -G Ninja \
+cmake -S examples/grpc-secure -B examples/grpc-secure/build -G Ninja \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build/grpc-secure --parallel 2
-ctest --test-dir build/grpc-secure --output-on-failure
+cmake --build examples/grpc-secure/build --parallel 2
+ctest --test-dir examples/grpc-secure/build --output-on-failure
 ```
 
 The smoke test creates a one-day test CA and certificates in a private temporary
@@ -68,7 +68,7 @@ Optional variables:
 
 | Variable | Default | Accepted range/behavior |
 | --- | ---: | --- |
-| `AVA_GRPC_BIND_ADDRESS` | `127.0.0.1:50051` | Explicit `host:port`, `dns:///host:port`, or `[IPv6]:port`. |
+| `AVA_GRPC_BIND_ADDRESS` | `127.0.0.1:50051` | Explicit `host:port`, `dns:///host:port`, or `[IPv6]:port`; port `0` asks the OS to select a free ephemeral port. |
 | `AVA_GRPC_ALLOW_WILDCARD_BIND` | `false` | `true` is an explicit opt-in for `0.0.0.0`, `[::]`, or `*`. |
 | `AVA_GRPC_MAX_MESSAGE_BYTES` | `4194304` | 1 KiB-64 MiB. |
 | `AVA_GRPC_RESOURCE_QUOTA_BYTES` | `67108864` | 1 MiB-1 GiB. |
@@ -88,7 +88,7 @@ export AVA_GRPC_SERVER_KEY='/etc/ava-grpc/tls/server.key'
 export AVA_GRPC_CLIENT_CA='/etc/ava-grpc/tls/client-ca.crt'
 export AVA_GRPC_ALLOWED_IDENTITIES='spiffe://example.internal/ava-client'
 
-./build/grpc-secure/ava_secure_greeter_server
+./examples/grpc-secure/build/ava_secure_greeter_server
 ```
 
 The allowlist comparison is case-sensitive and uses the values returned by
@@ -107,7 +107,7 @@ export AVA_GRPC_CLIENT_CERT='./client.crt'
 export AVA_GRPC_CLIENT_KEY='./client.key'
 export AVA_GRPC_SERVER_CA='./server-ca.crt'
 
-./build/grpc-secure/ava_secure_greeter_client 'Danny'
+./examples/grpc-secure/build/ava_secure_greeter_client 'AVA'
 ```
 
 ## Deployment notes

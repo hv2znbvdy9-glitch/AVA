@@ -67,6 +67,7 @@ void TestBindValidation() {
 	ValidateBindAddress("10.0.0.5:50051", false);
 	ValidateBindAddress("dns:///localhost:50051", false);
 	ValidateBindAddress("[::1]:50051", false);
+	ValidateBindAddress("localhost:0", false);
 	ValidateBindAddress("0.0.0.0:50051", true);
 
 	ExpectThrows([] { ValidateBindAddress("0.0.0.0:50051", false); },
@@ -83,8 +84,6 @@ void TestBindValidation() {
 				 "IPv4-mapped wildcard must be rejected by default");
 	ExpectThrows([] { ValidateBindAddress(":50051", false); },
 				 "empty host must be rejected");
-	ExpectThrows([] { ValidateBindAddress("localhost:0", false); },
-				 "zero port must be rejected");
 	ExpectThrows([] { ValidateBindAddress("localhost:not-a-port", false); },
 				 "non-numeric port must be rejected");
 }

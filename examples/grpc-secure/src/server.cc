@@ -64,6 +64,11 @@ void LogEvent(const char* level, const char* event, const std::string& detail = 
 	std::cerr << "}\n";
 }
 
+void LogServerStarted(const std::string& configured_address, int selected_port) {
+	std::cerr << "{\"level\":\"INFO\",\"event\":\"server_started\",\"address\":\""
+			  << JsonEscape(configured_address) << "\",\"port\":" << selected_port << "}\n";
+}
+
 sigset_t BlockShutdownSignals() {
 	sigset_t signals {};
 	if (sigemptyset(&signals) != 0 || sigaddset(&signals, SIGINT) != 0 ||
@@ -207,7 +212,7 @@ int RunServer() {
 	if (!server || selected_port == 0) {
 		throw std::runtime_error("gRPC server failed to bind or start");
 	}
-	LogEvent("INFO", "server_started", config.bind_address);
+	LogServerStarted(config.bind_address, selected_port);
 
 	int received_signal = 0;
 	const int wait_result = sigwait(&shutdown_signals, &received_signal);

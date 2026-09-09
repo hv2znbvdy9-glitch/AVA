@@ -11,7 +11,7 @@ client_bin=$2
 openssl_bin=$3
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/ava-grpc-mtls.XXXXXXXX")
 server_pid=''
-port=$((20000 + (RANDOM % 30000)))
+port=''
 server_log="${test_root}/server.log"
 
 cleanup() {
@@ -80,7 +80,7 @@ done
 chmod 0600 "${test_root}"/*.key
 
 env \
-	AVA_GRPC_BIND_ADDRESS="127.0.0.1:${port}" \
+	AVA_GRPC_BIND_ADDRESS='127.0.0.1:0' \
 	AVA_GRPC_SERVER_CERT="${test_root}/server.crt" \
 	AVA_GRPC_SERVER_KEY="${test_root}/server.key" \
 	AVA_GRPC_CLIENT_CA="${test_root}/ca.crt" \
@@ -100,6 +100,9 @@ for _ in $(seq 1 100); do
 	sleep 0.1
 done
 [[ "${started}" == true ]] || fail 'server did not become ready'
+port=$(sed -n 's/.*"port":\([0-9][0-9]*\).*/\1/p' "${server_log}" | tail -n 1)
+[[ "${port}" =~ ^[0-9]+$ ]] || fail 'server did not report its selected port'
+((port >= 1 && port <= 65535)) || fail 'server reported an invalid selected port'
 
 authorized_output=$(env \
 	AVA_GRPC_TARGET="127.0.0.1:${port}" \

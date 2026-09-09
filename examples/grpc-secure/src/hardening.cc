@@ -229,7 +229,7 @@ void ValidateBindAddress(const std::string& address, bool allow_wildcard) {
 	if (host.empty()) {
 		throw std::runtime_error("AVA_GRPC_BIND_ADDRESS must name an explicit interface");
 	}
-	static_cast<void>(ParseBoundedInteger(port, "AVA_GRPC_BIND_ADDRESS port", 1, 65535));
+	static_cast<void>(ParseBoundedInteger(port, "AVA_GRPC_BIND_ADDRESS port", 0, 65535));
 
 	const bool wildcard = IsWildcardHost(ToLowerAscii(host));
 	if (wildcard && !allow_wildcard) {
