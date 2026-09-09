@@ -51,3 +51,9 @@ console.log(result.paths.portalHtml);
 ```bash
 npm test
 ```
+
+## Security reference examples
+
+- [Hardened C++ gRPC server](examples/grpc-secure/README.md) - mandatory mTLS,
+  certificate-identity authorization, bounded resources, rate limiting, and
+  signal-safe graceful shutdown.
