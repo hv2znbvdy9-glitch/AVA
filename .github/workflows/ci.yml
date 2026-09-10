@@ -5,12 +5,20 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    name: Node ${{ matrix.node-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [20, 22]
 
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +26,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
 
       - name: Run tests
         run: npm test
+
+      - name: Start library
+        run: npm start
+
+      - name: Start CLI smoke test
+        run: node bin/cli.js --color
