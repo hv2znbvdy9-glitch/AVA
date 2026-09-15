@@ -45,6 +45,11 @@ test('hexToRgb should parse #ffffff correctly', () => {
 	assert.strictEqual(rgb.b, 255);
 });
 
+test('hexToRgb should default invalid colors to black', () => {
+	const rgb = hexToRgb('not-a-color');
+	assert.deepStrictEqual(rgb, {r: 0, g: 0, b: 0});
+});
+
 test('colorize should wrap text in ANSI escape codes', () => {
 	const result = colorize('hello', '#0969DA');
 	assert.ok(result.includes('hello'));
