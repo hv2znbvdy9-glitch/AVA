@@ -27,7 +27,12 @@ const STATE_LABELS = {
  * @returns {number} The clamped integer score.
  */
 function clampScore(value) {
-	return Math.max(-3, Math.min(3, Math.round(value)));
+	const numeric = Number(value);
+	if (!Number.isFinite(numeric)) {
+		return 0;
+	}
+
+	return Math.max(-3, Math.min(3, Math.round(numeric)));
 }
 
 /**
@@ -64,9 +69,28 @@ function calculateScore(signals) {
 	let totalWeight = 0;
 
 	for (const signal of signals) {
-		const weight = signal.weight !== undefined ? signal.weight : 1;
-		weightedSum += signal.value * weight;
+		if (!signal || typeof signal !== 'object') {
+			continue;
+		}
+
+		const rawValue = Number(signal.value);
+		const rawWeight = Number(signal.weight);
+
+		if (!Number.isFinite(rawValue)) {
+			continue;
+		}
+
+		const weight = Number.isFinite(rawWeight) ? rawWeight : 1;
+		if (weight === 0) {
+			continue;
+		}
+
+		weightedSum += rawValue * weight;
 		totalWeight += weight;
+	}
+
+	if (totalWeight === 0) {
+		return 0;
 	}
 
 	const average = weightedSum / totalWeight;

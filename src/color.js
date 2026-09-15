@@ -8,8 +8,13 @@ const AVA_COLOR = '#0969DA';
  * @returns {{r: number, g: number, b: number}}
  */
 function hexToRgb(hex) {
-	const clean = hex.replace(/^#/, '');
-	const int = parseInt(clean, 16);
+	const clean = typeof hex === 'string' ? hex.trim().replace(/^#/, '') : '';
+	if (!/^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(clean)) {
+		return {r: 0, g: 0, b: 0};
+	}
+
+	const expanded = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean;
+	const int = parseInt(expanded, 16);
 	return {
 		r: (int >> 16) & 0xff,
 		g: (int >> 8) & 0xff,

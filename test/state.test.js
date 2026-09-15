@@ -139,6 +139,21 @@ test('calculateScore clamps result to [-3, +3]', () => {
 	assert.strictEqual(result, 3);
 });
 
+test('calculateScore returns zero when total weight is zero', () => {
+	const result = calculateScore([{value: 2, weight: 0}, {value: -3, weight: 0}]);
+	assert.strictEqual(result, 0);
+});
+
+test('calculateScore ignores invalid signal entries', () => {
+	const result = calculateScore([
+		{value: 2, weight: 2},
+		null,
+		{value: 'bad', weight: 2},
+		{value: -2, weight: 2},
+	]);
+	assert.strictEqual(result, 0);
+});
+
 test('calculateScore throws for empty array', () => {
 	assert.throws(() => calculateScore([]), {message: 'signals must be a non-empty array'});
 });
