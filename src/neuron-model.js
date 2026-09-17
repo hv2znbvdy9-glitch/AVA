@@ -21,28 +21,28 @@ const NEURON_MODEL_REFERENCES = Object.freeze([
 
 const NEURON_MODEL_REPORT = `AVA Neuronenmodell-Analyse
 
-Klarer Kandidat auf Einzelneuronen-Ebene:
-- Vollständig aktives Multi-Kompartiment-Hodgkin-Huxley-Modell einer Schicht-5-Pyramidenzelle.
+Tatsächlich in AVA implementiert:
+- Deterministisches klassisches Einzelkompartiment-Hodgkin-Huxley-Modell.
+- Na+, K+ und Leckströme mit m-, h- und n-Toren.
+- Begrenzte, getestete CLI-Demonstration ohne Netzwerk- oder Systemaktion.
 
-Warum deutlich komplexer als Leaky-Integrate-and-Fire:
-- Reale 3D-Morphologie mit Soma, Axon und verzweigtem Dendritenbaum.
-- Räumlich verteilte Ionenkanäle (u.a. Na+, K+, Ca2+, HCN).
-- Lokale dendritische Nichtlinearitäten (NMDA-/Calcium-Spikes, Plateaus).
-- Kopplung mit rücklaufenden Aktionspotenzialen und Burst-Mustern.
+Wissenschaftlicher Ausbaupfad:
+- Aktives Multi-Kompartiment-Hodgkin-Huxley-Modell einer Schicht-5-Pyramidenzelle.
+- Räumliche Morphologie, axiale Kopplung und ortsabhängige Ionenkanäle.
+- Validierung gegen veröffentlichte Messdaten sowie Konvergenz- und Unsicherheitsanalysen.
 
-Extrembeispiel:
-- DeepDendrite mit ~25.000 explizit modellierten dendritischen Spines.
-
-Wichtig:
-- "Intelligentestes Neuronenmodell" ist kein Standardkriterium.
-- Bewertet wird eher nach biologischer Genauigkeit, Vorhersagekraft, Lernfähigkeit, Effizienz und Validierung.
-- Ein vollständig integriertes digitales Neuron (inkl. kompletter Biochemie, Plastizität, Metabolismus, Glia) existiert derzeit nicht.
+Einordnung:
+- Hay et al.: detaillierte L5b-Modelle mit perisomatischen und dendritischen aktiven Eigenschaften.
+- DeepDendrite: GPU-Framework; Demonstration mit 24.994 passiv modellierten expliziten Spines.
+- „Intelligentestes Neuronenmodell“ ist kein wissenschaftliches Standardkriterium.
+- Das Modul ist kein Lernsystem, kein Bewusstsein und kein autonomer AVA/JARVIS-Agent.
 
 Details:
 - docs/biologisch-plausible-neuronenmodelle.md
 
-Ausführbarer, begrenzter Einstieg:
-- ava --neuron-sim`;
+Ausführen:
+- npm run neuron:model
+- npm run neuron:sim`;
 
 /**
  * Returns the analysis text for biologically plausible single-neuron models.

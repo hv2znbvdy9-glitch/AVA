@@ -1,67 +1,64 @@
-# AVA Hodgkin-Huxley teaching prototype
+# AVA Hodgkin-Huxley-Lehrprototyp
 
-This module is a deterministic implementation of the classic
-single-compartment Hodgkin-Huxley membrane model. It is an executable,
-dependency-free starting point for the broader neuron-model analysis in
-[`biologisch-plausible-neuronenmodelle.md`](biologisch-plausible-neuronenmodelle.md).
+> Projektkontext: AVA 01610 1  
+> Autorzuordnung: Danny Nico Hildebrand – Danny Devito
 
-It is deliberately **not** presented as the Hay L5b model, DeepDendrite, a
-learning system, consciousness, or an autonomous AVA/JARVIS agent.
+Dieses Modul implementiert deterministisch das klassische Hodgkin-Huxley-Membranmodell in einem einzelnen Kompartiment. Es ist ein ausführbarer, abhängigkeitenarmer Einstieg in die weiterführende Analyse biologisch plausibler Neuronenmodelle.
 
-## Implemented scope
+Es ist ausdrücklich kein Hay-L5b-Modell, kein DeepDendrite-Modell, kein Lernsystem, kein Bewusstsein und kein autonomer AVA- oder JARVIS-Agent.
 
-- sodium, potassium, and leak currents;
-- voltage-dependent `m`, `h`, and `n` gates;
-- stable rate functions at the removable singularities;
-- finite-value, timestep, conductance, gate, and total-step validation;
-- deterministic regression checks for rest and a current-evoked spike;
-- a bounded CLI demonstration that prints only a summary.
+## Implementierter Umfang
 
-Not implemented are reconstructed morphology, coupled dendritic compartments,
-spines, synapses, calcium or NMDA spikes, plasticity, metabolism, gene
-expression, glia, learning, or agency.
+- Natrium-, Kalium- und Leckströme;
+- spannungsabhängige m-, h- und n-Tore;
+- stabile Ratenfunktionen an den entfernbaren Singularitäten;
+- Prüfungen für endliche Werte, Zeitschritt, Leitfähigkeiten, Torbereiche und Gesamtschrittzahl;
+- deterministische Regressionstests für Ruheverhalten und einen strominduzierten Spike;
+- begrenzte CLI-Ausgabe mit einer kompakten Zusammenfassung.
 
-## Run the bounded demonstration
+Nicht implementiert sind rekonstruierte Morphologie, gekoppelte Dendritenkompartimente, Synapsen, Spines, Calcium- oder NMDA-Spikes, Plastizität, Stoffwechsel, Genexpression, Glia, Lernen oder Agency.
 
-```bash
-npx ava --neuron-sim
-```
+## Ausführen
 
-The same command works as `npx ava neuron-sim`. It runs for 30 ms with a tested
-`0.01 ms` step and reports the peak voltage and whether the trace crossed 0 mV.
-It performs no network, operating-system, persistence, or device action.
+~~~bash
+npm install
+npm run neuron:sim
+~~~
 
-## Library usage
+Direkter lokaler Aufruf:
 
-```js
-const {simulateNeuron} = require('ava');
+~~~bash
+node ./bin/cli.js --neuron-sim
+~~~
+
+Unter Windows PowerShell:
+
+~~~powershell
+node .\bin\cli.js --neuron-sim
+~~~
+
+Die Demonstration simuliert 30 ms mit einem getesteten Zeitschritt von 0,01 ms. Sie meldet den Spannungshöchstwert und ob die Spannung 0 mV überschritten hat. Sie führt keine Netzwerk-, Betriebssystem-, Persistenz- oder Geräteaktion aus.
+
+## Bibliotheksnutzung
+
+~~~js
+const {simulateNeuron} = require('./src');
 
 const trace = simulateNeuron({
-	durationMs: 30,
-	dt: 0.01,
-	current: (timeMs) => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
+  durationMs: 30,
+  dt: 0.01,
+  current: (timeMs) => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
 });
 
 console.log(Math.max(...trace.map((sample) => sample.voltage)));
-```
+~~~
 
-Units follow the conventional formulation: time in ms, voltage in mV,
-capacitance in uF/cm2, conductance in mS/cm2, and current density in uA/cm2.
-The explicit-Euler integrator accepts at most `0.1 ms`; `0.01 ms` is the tested
-value. Runs above 1,000,000 steps are rejected to keep memory and runtime
-bounded.
+Die Einheiten folgen der klassischen Formulierung: Zeit in ms, Spannung in mV, Kapazität in μF/cm², Leitfähigkeit in mS/cm² und Stromdichte in μA/cm².
 
-## Scientific boundary
+Der explizite Euler-Integrator akzeptiert höchstens 0,1 ms; 0,01 ms ist der getestete Referenzwert. Simulationen mit mehr als 1.000.000 Schritten werden abgewiesen, um Speicherbedarf und Laufzeit zu begrenzen.
 
-The regression tests demonstrate internal numerical behavior only. They are
-not experimental validation. A real multi-compartment extension must define
-morphology and axial coupling, select validated channel distributions, use a
-suitable ODE solver, record parameter provenance, compare against published
-traces, and include convergence, sensitivity, and uncertainty analyses.
+## Wissenschaftliche Grenze
 
-Relevant primary literature:
+Die Regressionstests prüfen interne numerische Eigenschaften. Sie sind keine experimentelle Validierung. Ein belastbarer Multi-Kompartiment-Ausbau muss Morphologie und axiale Kopplung definieren, validierte Kanalverteilungen verwenden, einen geeigneten ODE-Löser einsetzen, Parameterquellen dokumentieren, veröffentlichte Messkurven vergleichen und Konvergenz-, Sensitivitäts- sowie Unsicherheitsanalysen enthalten.
 
-- Hay et al. (2011), DOI `10.1371/journal.pcbi.1002107`;
-- Zhang et al. (2023), DOI `10.1038/s41467-023-41553-7`;
-- Nolte et al. (2019), DOI `10.1038/s41467-019-11633-8`;
-- Korngreen (2026), DOI `10.1038/s42003-026-10561-w`.
+Die vollständige Einordnung steht in [Biologisch plausible Neuronenmodelle](biologisch-plausible-neuronenmodelle.md).
