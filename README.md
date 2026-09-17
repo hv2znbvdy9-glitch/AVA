@@ -20,6 +20,14 @@ npx ava "echo hello"
 npx ava --safe-local-node
 ```
 
+```bash
+npx ava --neuron-model
+```
+
+```bash
+npx ava --neuron-sim
+```
+
 ### As a library
 
 ```js
@@ -39,6 +47,25 @@ console.log(result.paths.snapshotJson);
 console.log(result.paths.portalHtml);
 ```
 
+```js
+const { neuronModelReport, neuronModelData } = require('ava');
+
+console.log(neuronModelReport());
+console.log(neuronModelData().references.length); // 4
+```
+
+```js
+const {simulateNeuron} = require('ava');
+
+const trace = simulateNeuron({
+  durationMs: 30,
+  dt: 0.01,
+  current: (timeMs) => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
+});
+
+console.log(Math.max(...trace.map((sample) => sample.voltage)));
+```
+
 ### Options
 
 | Option   | Type    | Default         | Description                      |
@@ -54,10 +81,12 @@ npm test
 
 ## Scientific prototypes
 
-- [Hodgkin-Huxley neuron prototype](docs/hodgkin-huxley-prototype.md) -
-  deterministic single-compartment membrane simulation with regression tests.
-  It is not a full pyramidal-cell model, a learning system, or an autonomous
-  "Jarvis" agent.
+- [Neuron-model analysis](docs/biologisch-plausible-neuronenmodelle.md) -
+  source-grounded comparison of detailed biological neuron models.
+- [Hodgkin-Huxley teaching prototype](docs/hodgkin-huxley-prototype.md) -
+  deterministic single-compartment membrane simulation with bounded inputs and
+  regression tests. It is not a full pyramidal-cell model, learning system, or
+  autonomous AVA/JARVIS agent.
 
 ## Security reference examples
 

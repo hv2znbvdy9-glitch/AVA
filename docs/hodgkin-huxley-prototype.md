@@ -1,69 +1,67 @@
-# AVA Hodgkin-Huxley neuron prototype
+# AVA Hodgkin-Huxley teaching prototype
 
-This module is a small, deterministic research and teaching prototype of the
-classic single-compartment Hodgkin-Huxley membrane model. It is an incremental
-step beyond a leaky integrate-and-fire point neuron, not a full implementation
-of the multi-compartment Layer-5 pyramidal-cell models discussed in the source
-analysis.
+This module is a deterministic implementation of the classic
+single-compartment Hodgkin-Huxley membrane model. It is an executable,
+dependency-free starting point for the broader neuron-model analysis in
+[`biologisch-plausible-neuronenmodelle.md`](biologisch-plausible-neuronenmodelle.md).
 
-## Scope
+It is deliberately **not** presented as the Hay L5b model, DeepDendrite, a
+learning system, consciousness, or an autonomous AVA/JARVIS agent.
 
-Implemented:
+## Implemented scope
 
 - sodium, potassium, and leak currents;
-- voltage-dependent m, h, and n gates;
-- numerically stable rate functions at their removable singularities;
-- bounded input validation and explicit-Euler integration;
-- deterministic tests for rest stability and a current-evoked action potential.
+- voltage-dependent `m`, `h`, and `n` gates;
+- stable rate functions at the removable singularities;
+- finite-value, timestep, conductance, gate, and total-step validation;
+- deterministic regression checks for rest and a current-evoked spike;
+- a bounded CLI demonstration that prints only a summary.
 
-Not implemented:
+Not implemented are reconstructed morphology, coupled dendritic compartments,
+spines, synapses, calcium or NMDA spikes, plasticity, metabolism, gene
+expression, glia, learning, or agency.
 
-- reconstructed 3D morphology or electrically coupled compartments;
-- dendritic spines, NMDA or calcium spikes;
-- synaptic plasticity, neuromodulation, metabolism, gene expression, or glia;
-- learning, agency, consciousness, or an autonomous "Jarvis" system.
+## Run the bounded demonstration
 
-The scientific distinction matters: biological detail is not the same as
-intelligence. This module produces a membrane-voltage simulation only.
-
-## Usage
-
-```js
-const { simulate } = require('./src/neuron/hodgkin-huxley');
-
-const trace = simulate({
-  durationMs: 30,
-  dt: 0.01,
-  current: timeMs => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
-});
-
-console.log(Math.max(...trace.map(sample => sample.voltage)));
+```bash
+npx ava --neuron-sim
 ```
 
-Units follow the conventional Hodgkin-Huxley formulation: time in ms, voltage
-in mV, capacitance in uF/cm2, conductance in mS/cm2, and current density in
-uA/cm2. The integrator limits `dt` to 0.1 ms; `0.01` ms is the tested value.
+The same command works as `npx ava neuron-sim`. It runs for 30 ms with a tested
+`0.01 ms` step and reports the peak voltage and whether the trace crossed 0 mV.
+It performs no network, operating-system, persistence, or device action.
 
-## Validation and limitations
+## Library usage
 
-The tests verify finite rates at -40 mV and -55 mV, near-rest behavior, a
-positive spike under a 10 uA/cm2 pulse, invalid-step rejection, and finite
-output. They are regression checks, not experimental validation.
+```js
+const {simulateNeuron} = require('ava');
 
-A future multi-compartment extension should first define morphology and
-coupling data, select validated channel distributions, adopt a more suitable
-ODE solver, record parameter provenance, compare against published traces, and
-include uncertainty and convergence analyses.
+const trace = simulateNeuron({
+	durationMs: 30,
+	dt: 0.01,
+	current: (timeMs) => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
+});
 
-## Sources behind the attached analysis
+console.log(Math.max(...trace.map((sample) => sample.voltage)));
+```
 
-- Hay et al. (2011), *Models of Neocortical Layer 5b Pyramidal Cells Capturing
-  a Wide Range of Dendritic and Perisomatic Active Properties*:
-  https://doi.org/10.1371/journal.pcbi.1002107
-- A GPU-based framework with explicit dendritic spines (2023):
-  https://doi.org/10.1038/s41467-023-41553-7
-- Cortical microcircuit reliability study (2019):
-  https://doi.org/10.1038/s41467-019-11633-8
+Units follow the conventional formulation: time in ms, voltage in mV,
+capacitance in uF/cm2, conductance in mS/cm2, and current density in uA/cm2.
+The explicit-Euler integrator accepts at most `0.1 ms`; `0.01 ms` is the tested
+value. Runs above 1,000,000 steps are rejected to keep memory and runtime
+bounded.
 
-The 2026 "reference-grade neuron models" citation in the supplied text should
-be independently verified before it is used as an implementation requirement.
+## Scientific boundary
+
+The regression tests demonstrate internal numerical behavior only. They are
+not experimental validation. A real multi-compartment extension must define
+morphology and axial coupling, select validated channel distributions, use a
+suitable ODE solver, record parameter provenance, compare against published
+traces, and include convergence, sensitivity, and uncertainty analyses.
+
+Relevant primary literature:
+
+- Hay et al. (2011), DOI `10.1371/journal.pcbi.1002107`;
+- Zhang et al. (2023), DOI `10.1038/s41467-023-41553-7`;
+- Nolte et al. (2019), DOI `10.1038/s41467-019-11633-8`;
+- Korngreen (2026), DOI `10.1038/s42003-026-10561-w`.
