@@ -21,11 +21,11 @@ npx ava --safe-local-node
 ```
 
 ```bash
-npx ava --neuron-model
+npm run neuron:model
 ```
 
 ```bash
-npx ava --neuron-sim
+npm run neuron:sim
 ```
 
 ### As a library
@@ -79,10 +79,17 @@ console.log(Math.max(...trace.map((sample) => sample.voltage)));
 npm test
 ```
 
+The npm scripts above deliberately use the repository-local CLI. This avoids
+accidentally resolving an unrelated npm package with the common name `ava`.
+
 ## Scientific prototypes
 
-- [Neuron-model analysis](docs/biologisch-plausible-neuronenmodelle.md) -
-  source-grounded comparison of detailed biological neuron models.
+
+- [AVA 01610 neuron-model analysis](docs/biologisch-plausible-neuronenmodelle.md) -
+  German, source-grounded separation of the implemented prototype from future
+  multi-compartment targets.
+- [German narration script](docs/ava-01610-neuron-sprechtext.md) -
+  complete spoken version prepared for MP3 production.
 - [Hodgkin-Huxley teaching prototype](docs/hodgkin-huxley-prototype.md) -
   deterministic single-compartment membrane simulation with bounded inputs and
   regression tests. It is not a full pyramidal-cell model, learning system, or

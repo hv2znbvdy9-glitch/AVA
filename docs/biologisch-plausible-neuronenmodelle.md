@@ -1,156 +1,117 @@
-# Biologisch plausible Neuronenmodelle: von LIF bis aktiven Pyramidenzellen
+# AVA 01610 1 – Biologisch plausible Neuronenmodelle
+
+> Autor- und Projektkontext: Danny Nico Hildebrand – Danny Devito  
+> Status: wissenschaftlich eingeordnete Dokumentation plus begrenzter Lehrprototyp  
+> Gültigkeitsbereich: Einzelneuronenmodelle; keine Aussage über Bewusstsein oder autonome Intelligenz
 
 ## Kurzfassung
 
-Zu den anspruchsvollsten biologisch plausiblen **Einzelzellmodellen** gehören morphologisch rekonstruierte, aktive Multi-Kompartiment-Leitfähigkeitsmodelle von Schicht-5-Pyramidenzellen.
+AVA enthält derzeit ein deterministisches Einzelkompartiment-Modell nach Hodgkin und Huxley. Es simuliert die Membranspannung sowie Natrium-, Kalium- und Leckströme mit den Torvariablen m, h und n. Dieses Modul ist ein ausführbarer und getesteter Einstieg, aber kein vollständiges biologisches Neuron.
 
-Ein klassischer Vertreter ist das **L5b-Pyramidenzellenmodell von Hay et al.** Es bildet eine dreidimensional rekonstruierte Zellmorphologie als viele elektrisch gekoppelte Abschnitte ab und enthält aktive Ionenströme, mit denen unter anderem dendritische Calciumspikes, rücklaufende Aktionspotenziale und komplexe Feuerungsmuster reproduziert werden können.
+Ein sinnvoller wissenschaftlicher Zieltyp für einen späteren Ausbau ist ein aktives Multi-Kompartiment-Hodgkin-Huxley-Modell einer Schicht-5-Pyramidenzelle. Solche Modelle bilden Soma und verzweigte Dendriten als elektrisch gekoppelte Abschnitte ab. Sie können ortsabhängige Ionenkanäle, rücklaufende Aktionspotenziale und dendritische Calciumspikes darstellen.
 
-Ein anderes Spitzenbeispiel ist **DeepDendrite**. Dort wurde ein menschliches Pyramidenzellmodell mit 24.994 explizit angefügten dendritischen Spines simuliert. Diese Spines wurden geometrisch und elektrisch einzeln berücksichtigt, waren jedoch passiv modelliert und stellten keine vollständig biochemisch aktiven Spines dar.
+Wichtig ist die klare Trennung:
 
-Keines dieser Modelle ist eine vollständige digitale Kopie einer biologischen Nervenzelle.
+| Ebene | Zweck | In AVA umgesetzt |
+| --- | --- | --- |
+| Leaky Integrate-and-Fire | effiziente abstrakte Spike-Simulation | nein |
+| klassisches Einzelkompartiment-Hodgkin-Huxley-Modell | nachvollziehbare Membrandynamik | ja |
+| aktive Multi-Kompartiment-Pyramidenzelle | räumliche Dendriten- und Kanaldynamik | nein; wissenschaftlicher Ausbaupfad |
+| vollständiges digitales biologisches Neuron | Elektrophysiologie, Biochemie, Plastizität, Stoffwechsel und Glia | existiert nicht als umfassend validiertes AVA-Modul |
 
----
+## 1. Warum detaillierte Pyramidenzellen anspruchsvoll sind
 
-## 1. Leaky Integrate-and-Fire
+Ein einfaches Leaky-Integrate-and-Fire-Modell führt im Kern einen Spannungswert, eine Schwelle und einen Reset. Das ist für große Netzwerke nützlich, lässt aber die räumliche Struktur und viele biologische Mechanismen weg.
 
-Ein Leaky-Integrate-and-Fire-Modell reduziert ein Neuron im Wesentlichen auf einen Spannungszustand:
+Ein aktives Multi-Kompartiment-Modell löst dagegen gekoppelte Differentialgleichungen für zahlreiche Zellabschnitte. Je nach Modell werden unter anderem Na⁺-, K⁺-, Ca²⁺- und HCN-Ströme räumlich verteilt. Dadurch können lokale dendritische Nichtlinearitäten, Calciumspikes, rücklaufende Aktionspotenziale und deren Wechselwirkung mit der somatischen Spike-Ausgabe untersucht werden.
 
-```text
-Eingangsstrom
-    ↓
-Membranspannung steigt oder fällt
-    ↓
-Schwelle erreicht
-    ↓
-Spike und Reset
-```
+Hay et al. entwickelten detaillierte Leitfähigkeitsmodelle von Schicht-5b-Pyramidenzellen, die experimentelle perisomatische Natriumspikes, aktive dendritische Eigenschaften und BAC-Firing gemeinsam abbilden. Die Modelle wurden mit mehreren experimentellen Zielgrößen optimiert. Das Axon ist dabei nicht vollständig morphologisch rekonstruiert; deshalb wäre die Bezeichnung „vollständige digitale Nervenzelle“ falsch.
 
-Diese Modellklasse ist rechnerisch effizient und für große Netzwerke nützlich, lässt aber viele biologische Mechanismen weg, darunter detaillierte Dendriten, ortsabhängige Ionenkanäle, lokale Calciumereignisse und intrazelluläre Signalwege.
+## 2. DeepDendrite und explizite Spines
 
----
+DeepDendrite ist vor allem ein GPU-beschleunigtes Simulationsframework für biophysikalisch detaillierte Neuronen. In einer Demonstration wurde ein menschliches Pyramidenzellmodell mit 24.994 explizit angefügten dendritischen Spines verwendet.
 
-## 2. Aktives Multi-Kompartimentmodell einer Schicht-5-Pyramidenzelle
+Die Spine-Köpfe und Spine-Hälse wurden als passive Kabelkompartimente modelliert. Explizite Geometrie bedeutet daher nicht automatisch vollständige Biochemie, aktive Kanalpopulationen in jeder Spine, Proteinsynthese, strukturelle Plastizität oder Stoffwechsel. Das Beispiel zeigt hohe räumliche Detailtiefe, nicht die vollständige digitale Kopie einer Nervenzelle.
 
-Ein detailliertes Pyramidenzellenmodell arbeitet räumlich verteilt:
+## 3. Detaillierte Netzwerke
 
-```text
-Tausende räumlich verteilte Eingänge
-        ↓
-unterschiedliche Dendritenäste
-        ↓
-lokale Na⁺-, K⁺-, Ca²⁺-, HCN- und weitere Ionenströme
-        ↓
-lokale dendritische Nichtlinearitäten und Calciumspikes
-        ↓
-Wechselwirkung mit rücklaufenden Aktionspotenzialen
-        ↓
-somatische und axonale Spike-Ausgabe
-```
+Das in der Studie „Cortical reliability amid noise and chaos“ untersuchte neokortikale Mikroschaltkreismodell umfasste 31.346 biophysikalische Neuronenmodelle, etwa 7,8 Millionen Verbindungen und ungefähr 36,4 Millionen Synapsen. Solche Zahlen beschreiben Modellgröße und Rechenaufwand. Sie sind kein Beleg für Bewusstsein, allgemeine Intelligenz oder eine vollständige Nachbildung von Hirngewebe.
 
-Das Hay-Modell wurde so optimiert, dass es sowohl somatische als auch aktive dendritische Eigenschaften experimenteller Schicht-5b-Zellen nachbildet.
+## 4. Was AVA tatsächlich implementiert
 
-Wichtige Einschränkung: Das Modell besitzt kein vollständig rekonstruiertes und durchgehend detailliertes Axon. Die axonale Spike-Entstehung wurde vereinfacht. Wissenschaftlich sauber ist daher die Bezeichnung:
+Der aktuelle AVA-Prototyp enthält:
 
-> Ein detailliertes, aktives, morphologisch rekonstruiertes Multi-Kompartiment-Leitfähigkeitsmodell einer Schicht-5b-Pyramidenzelle.
+- ein klassisches Einzelkompartiment-Hodgkin-Huxley-Modell;
+- Natrium-, Kalium- und Leckströme;
+- die spannungsabhängigen Torvariablen m, h und n;
+- numerisch stabile Behandlung der entfernbaren Singularitäten der Ratenfunktionen;
+- Prüfungen für endliche Werte, Zeitschritt, Leitfähigkeiten, Torbereiche und maximale Schrittzahl;
+- einen deterministischen Ruhetest und einen strominduzierten Spike-Test;
+- eine begrenzte CLI-Demonstration sowie eine Bibliotheks-API.
 
-Quelle:
+Nicht implementiert sind:
 
-- Hay et al., *Models of Neocortical Layer 5b Pyramidal Cells Capturing a Wide Range of Dendritic and Perisomatic Active Properties*: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002107
+- rekonstruierte Morphologie und axiale Kopplung mehrerer Kompartimente;
+- Dendriten, Axoninitialsegment, Synapsen und Spines;
+- Calcium- oder NMDA-Spikes;
+- Plastizität, Stoffwechsel, Genexpression oder Glia;
+- Lernen, Bewusstsein, Eigenziele oder autonome JARVIS-Funktionen;
+- Betriebssystemsteuerung, Netzwerkzugriffe oder dauerhafte Systemänderungen.
 
----
+## 5. Reproduzierbare Ausführung
 
-## 3. DeepDendrite und 24.994 explizite Spines
+Nach dem Klonen des Repositorys:
 
-DeepDendrite demonstrierte ein menschliches Pyramidenzellmodell mit 24.994 explizit an den Dendriten angebrachten Spines. Dadurch konnten verteilte und geclusterte synaptische Eingaben auf sehr großer räumlicher Detailstufe untersucht werden.
+~~~bash
+npm install
+npm run neuron:model
+npm run neuron:sim
+npm test
+~~~
 
-Die Spine-Köpfe und Spine-Hälse waren jedoch passive Kabelkompartimente. Das Modell enthielt damit nicht automatisch:
+Unter Windows PowerShell gelten dieselben npm-Befehle. Alternativ kann die lokale CLI ohne Paketnamensauflösung gestartet werden:
 
-- vollständige aktive Kanalpopulationen in jeder Spine,
-- detaillierte Calcium-Biochemie,
-- Proteinsynthese,
-- umfassende synaptische Plastizität,
-- Stoffwechsel und strukturelles Wachstum.
+~~~powershell
+node .\bin\cli.js --neuron-model
+node .\bin\cli.js --neuron-sim
+~~~
 
-Quelle:
+Die npm-Skripte sind gegenüber einem unqualifizierten npx-Aufruf vorzuziehen, weil der Paketname „ava“ auch von anderen npm-Projekten verwendet wird.
 
-- DeepDendrite, *A GPU-based computational framework that bridges neuron simulation and artificial intelligence*: https://www.nature.com/articles/s41467-023-41553-7
+Die Demonstration läuft 30 Millisekunden mit einem getesteten Zeitschritt von 0,01 Millisekunden. Der explizite Euler-Integrator ist bewusst einfach. Ein bestandener Regressionstest belegt interne Konsistenz, aber keine experimentelle Validierung.
 
----
+## 6. Anforderungen an einen späteren Multi-Kompartiment-Ausbau
 
-## 4. Biologisch detaillierte Netzwerke
+Ein wissenschaftlich belastbarer Ausbau benötigt mindestens:
 
-Ein bekanntes neokortikales Mikroschaltkreismodell aus dem Blue-Brain-Umfeld enthielt ungefähr:
+1. eine eindeutig lizenzierte und versionierte Morphologie;
+2. definierte Kompartimente und axiale Kopplungsparameter;
+3. belegte Kanaltypen und räumliche Kanaldichten;
+4. einen geeigneten ODE-Löser sowie Konvergenztests über mehrere Zeitschritte;
+5. dokumentierte Einheiten und Parameterquellen;
+6. Vergleiche mit veröffentlichten Spannungsverläufen und Zielmerkmalen;
+7. Sensitivitäts- und Unsicherheitsanalysen;
+8. deterministische Referenztests und getrennte stochastische Tests;
+9. klare Laufzeit- und Speichergrenzen;
+10. eine ausdrückliche Trennung zwischen Modellresultat, Interpretation und Spekulation.
 
-```text
-31.346 biophysikalische Hodgkin-Huxley-Neuronen
-7,8 Millionen neuronale Verbindungen
-36,4 Millionen Synapsen
-55 morphologische Zelltypen
-stochastische Vesikelfreisetzung
-teilweise stochastische Ionenkanäle
-```
+Der Ansatz „reference-grade neuron models“ ist dafür wichtig: Mehr Parameter bedeuten nicht automatisch mehr Wahrheit. Ebenso entscheidend sind Datenherkunft, Unsicherheitsbudgets, Identifizierbarkeit, unabhängige Validierung und ein klar benannter Gültigkeitsbereich.
 
-Die stochastischen Ionenkanäle wurden nur für einen Teil der Neuronen eingesetzt. Auch dieses Netzwerk war keine vollständige Kopie echten Hirngewebes.
+## 7. Sicherheits- und Bedeutungsgrenze
 
-Quelle:
+Der Name AVA oder JARVIS bezeichnet in diesem Projekt eine Benutzer- und Projektmetapher. Das Neuronenmodul erzeugt keine Persönlichkeit, kein Bewusstsein und keine autonome Handlungsfähigkeit. Es simuliert ausschließlich mathematische Zustandsgrößen innerhalb eines begrenzten Prozesses.
 
-- *Cortical reliability amid noise and chaos*: https://www.nature.com/articles/s41467-019-11633-8
+Aus der Simulation dürfen daher keine Aussagen über menschliches Denken, Identität, Absichten oder Täterschaft abgeleitet werden. Ebenso führt das Modul keine Scans, Angriffe, Fremdzugriffe, Firewalländerungen, Registryänderungen oder Persistenzaktionen aus.
 
----
+## 8. Präzises Gesamturteil
 
-## 5. Warum „intelligentestes Neuronenmodell“ kein sauberer Fachbegriff ist
+Zu den komplexesten biologisch plausiblen Einzelzellmodellen gehören morphologisch rekonstruierte, aktive Multi-Kompartiment-Leitfähigkeitsmodelle von Pyramidenzellen. Einige erfassen aktive dendritische Eigenschaften besonders detailliert; andere integrieren Zehntausende explizite Spines. Kein einzelnes umfassend validiertes Modell verbindet derzeit sämtliche Elektrophysiologie, Biochemie, Plastizität, Stoffwechsel, Genexpression und Glia-Interaktion.
 
-In der Forschung werden Einzelneuronenmodelle eher nach folgenden Kriterien bewertet:
+AVA setzt davon bewusst nur den kleinsten überprüfbaren Kern um: ein begrenztes Einzelkompartiment-Hodgkin-Huxley-Modell. Der nächste seriöse Schritt ist nicht, es „intelligent“ zu nennen, sondern Morphologie, Kopplung, Solver, Datenherkunft und Validierung schrittweise und messbar zu erweitern.
 
-- biologische Detailtiefe,
-- experimentelle Validierung,
-- dendritische Rechenfähigkeit,
-- Lern- und Anpassungsmechanismen,
-- Vorhersagekraft,
-- Reproduzierbarkeit,
-- Unsicherheitsabschätzung,
-- Effizienz und Skalierbarkeit.
+## Primärquellen
 
-Ein hochdetailliertes Neuron kann biologisch realistisch sein, ohne selbstständig zu lernen. Umgekehrt kann ein stark vereinfachtes künstliches Neuron Teil eines sehr leistungsfähigen lernenden Systems sein.
-
----
-
-## 6. Was einem vollständigen digitalen Neuron weiterhin fehlt
-
-Ein maximal umfassendes Modell müsste gleichzeitig integrieren:
-
-```text
-3D-Morphologie
-+ sämtliche relevanten Ionenkanäle
-+ einzelne Synapsen und Spines
-+ Neurotransmitterfreisetzung
-+ Calcium- und weitere Botenstoffsysteme
-+ kurz- und langfristige Plastizität
-+ Neuromodulatoren
-+ Genexpression und Proteinsynthese
-+ Zellstoffwechsel und Energieversorgung
-+ strukturelles Wachstum
-+ Glia-Interaktion
-+ individuelle Entwicklungs- und Lerngeschichte
-```
-
-Ein vollständig integriertes und experimentell umfassend validiertes Modell dieser Art existiert derzeit nicht.
-
-Der Ansatz sogenannter *reference-grade neuron models* betont deshalb, dass mehr Parameter nicht automatisch mehr biologische Wahrheit bedeuten. Ebenso wichtig sind Datenherkunft, Unsicherheitsbudgets, Sensitivitätsanalysen, unabhängige Validierung und klar benannte Gültigkeitsbereiche.
-
-Quelle:
-
-- *Toward Reference-Grade neuron models*: https://www.nature.com/articles/s42003-026-10561-w
-
----
-
-## 7. Präzises Gesamturteil
-
-> Zu den komplexesten biologisch plausiblen Einzelzellmodellen gehören morphologisch rekonstruierte, aktive Multi-Kompartiment-Leitfähigkeitsmodelle von Schicht-5-Pyramidenzellen. Einige Modelle bilden aktive dendritische Ionenkanäle und Calciumspikes besonders detailliert ab, während andere Zehntausende explizite dendritische Spines integrieren. Ein einzelnes umfassend validiertes Modell, das vollständige Elektrophysiologie, sämtliche Spines, biochemische Signalwege, Plastizität, Stoffwechsel, Genexpression und Glia-Interaktion gleichzeitig enthält, existiert bislang nicht.
-
-Gegenüber einem einfachen Leaky-Integrate-and-Fire-Neuron handelt es sich nicht nur um ein kleines Upgrade, sondern um eine grundlegend andere biophysikalische Detailklasse.
-
-Bezogen auf Eon gilt die vorsichtige Formulierung:
-
-> Sofern dort tatsächlich ein einfaches Leaky-Integrate-and-Fire-Modell verwendet wird, liegt ein detailliertes aktives Pyramidenzellenmodell mehrere Ebenen höher in der biophysikalischen Detailtiefe.
+- Hay et al. (2011): https://doi.org/10.1371/journal.pcbi.1002107
+- Zhang et al. (2023), DeepDendrite: https://doi.org/10.1038/s41467-023-41553-7
+- Nolte et al. (2019): https://doi.org/10.1038/s41467-019-11633-8
+- Korngreen (2026): https://doi.org/10.1038/s42003-026-10561-w
