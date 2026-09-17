@@ -28,6 +28,10 @@ npx ava --neuron-model
 npx ava --neuron-sim
 ```
 
+```bash
+npx ava --neuro-hh --protocol bac-coincidence --output AVA_EVENTS
+```
+
 ### As a library
 
 ```js
@@ -66,6 +70,13 @@ const trace = simulateNeuron({
 console.log(Math.max(...trace.map((sample) => sample.voltage)));
 ```
 
+```js
+const {simulateMultiCompartmentHH} = require('ava');
+
+const result = simulateMultiCompartmentHH({protocol: 'somatic-step'});
+console.log(result.summary.spike_count);
+```
+
 ### Options
 
 | Option   | Type    | Default         | Description                      |
@@ -77,6 +88,7 @@ console.log(Math.max(...trace.map((sample) => sample.voltage)));
 
 ```bash
 npm test
+npm run test:neuro
 ```
 
 ## Scientific prototypes
@@ -85,8 +97,15 @@ npm test
   source-grounded comparison of detailed biological neuron models.
 - [Hodgkin-Huxley teaching prototype](docs/hodgkin-huxley-prototype.md) -
   deterministic single-compartment membrane simulation with bounded inputs and
-  regression tests. It is not a full pyramidal-cell model, learning system, or
-  autonomous AVA/JARVIS agent.
+  regression tests.
+- [AVA 01610 multi-compartment Neuro-HH prototype](docs/AVA_NEURO_HH_IMPLEMENTATION.md) -
+  deterministic seven-compartment Layer-5-style integration model with axial
+  coupling, bounded inputs and immutable SHA-256 evidence directories.
+
+Both are scientific prototypes, not experimentally fitted full pyramidal-cell
+models, learning systems, or autonomous AVA/JARVIS agents. On Windows, start the
+multi-compartment model without administrator rights using
+`scripts\START_AVA_NEURO_HH_WINDOWS.cmd`.
 
 ## Security reference examples
 

@@ -22,27 +22,32 @@ const NEURON_MODEL_REFERENCES = Object.freeze([
 const NEURON_MODEL_REPORT = `AVA Neuronenmodell-Analyse
 
 Klarer Kandidat auf Einzelneuronen-Ebene:
-- Vollständig aktives Multi-Kompartiment-Hodgkin-Huxley-Modell einer Schicht-5-Pyramidenzelle.
+- Ein morphologisch rekonstruiertes, aktives Multi-Kompartiment-Hodgkin-Huxley-Modell einer Schicht-5-Pyramidenzelle.
 
-Warum deutlich komplexer als Leaky-Integrate-and-Fire:
-- Reale 3D-Morphologie mit Soma, Axon und verzweigtem Dendritenbaum.
-- Räumlich verteilte Ionenkanäle (u.a. Na+, K+, Ca2+, HCN).
-- Lokale dendritische Nichtlinearitäten (NMDA-/Calcium-Spikes, Plateaus).
-- Kopplung mit rücklaufenden Aktionspotenzialen und Burst-Mustern.
+Hay-L5b, wissenschaftlich präzisiert:
+- Rekonstruierter Soma- und Dendritenbaum mit im Mittel etwa 200 Kompartimenten.
+- Räumlich verteilte Na+-, K+-, Ca2+- und HCN-bezogene Mechanismen.
+- Reproduktion perisomatischer Spikes, dendritischer Calciumspikes, Rückpropagation und BAC-Firing-Zielmerkmalen.
+- Das Hauptmodell besitzt kein vollständig rekonstruiertes Axon: Nur das Anfangssegment blieb erhalten; die Spikezone wurde vereinfacht perisomatisch modelliert.
+- NMDA-Spikes sind kein implementierter Kernmechanismus dieses Hay-Modells.
 
-Extrembeispiel:
-- DeepDendrite mit ~25.000 explizit modellierten dendritischen Spines.
+DeepDendrite:
+- 24.994 explizite Spines in einem detaillierten menschlichen Pyramidenzellmodell.
+- Explizite Spine-Geometrie bedeutet nicht automatisch vollständige aktive Spine-Biochemie.
 
 Wichtig:
 - "Intelligentestes Neuronenmodell" ist kein Standardkriterium.
-- Bewertet wird eher nach biologischer Genauigkeit, Vorhersagekraft, Lernfähigkeit, Effizienz und Validierung.
-- Ein vollständig integriertes digitales Neuron (inkl. kompletter Biochemie, Plastizität, Metabolismus, Glia) existiert derzeit nicht.
+- Bewertet wird eher nach biologischer Genauigkeit, Vorhersagekraft, Lernfähigkeit, Effizienz, Provenienz, Unsicherheit und Validierung.
+- Ein vollständig integriertes digitales Neuron inklusive kompletter Biochemie, Plastizität, Metabolismus und Glia existiert derzeit nicht.
+
+AVA-Implementierung:
+- ava --neuron-sim startet den klassischen Ein-Kompartiment-Lehrprototyp.
+- ava-neuro-hh-l5-prototype/v1 ist der ausführbare Sieben-Kompartiment-Prototyp (ava --neuro-hh).
+- Er ist kein experimentell angepasstes Hay-Modell und macht keinen solchen Anspruch.
 
 Details:
 - docs/biologisch-plausible-neuronenmodelle.md
-
-Ausführbarer, begrenzter Einstieg:
-- ava --neuron-sim`;
+- docs/AVA_NEURO_HH_IMPLEMENTATION.md`;
 
 /**
  * Returns the analysis text for biologically plausible single-neuron models.
@@ -54,12 +59,16 @@ function neuronModelReport() {
 
 /**
  * Returns structured data for the neuron-model analysis.
- * @returns {{candidate: string, category: string, references: {title: string, url: string}[]}}
+ * @returns {{candidate: string, category: string, implementation: {id: string, status: string}, references: {title: string, url: string}[]}}
  */
 function neuronModelData() {
 	return {
 		candidate: 'Aktives Multi-Kompartiment-Hodgkin-Huxley-Modell einer Schicht-5-Pyramidenzelle',
 		category: 'biologisch plausibles Einzelneuronenmodell',
+		implementation: {
+			id: 'ava-neuro-hh-l5-prototype/v1',
+			status: 'educational-prototype-not-experimentally-fitted',
+		},
 		references: NEURON_MODEL_REFERENCES.map((reference) => ({...reference})),
 	};
 }

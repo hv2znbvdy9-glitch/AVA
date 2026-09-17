@@ -12,6 +12,16 @@ const {
 	simulate: simulateNeuron,
 	steadyState: neuronSteadyState,
 } = require('./neuron/hodgkin-huxley');
+const {
+	MODEL_ID,
+	MODEL_SCOPE,
+	COMPARTMENTS,
+	COUPLINGS,
+	PROTOCOLS,
+	simulateMultiCompartmentHH,
+	validateSimulation,
+	writeNeuroEvidence,
+} = require('./neuro-hh');
 
 module.exports = {
 	run,
@@ -37,4 +47,12 @@ module.exports = {
 	neuronRates,
 	simulateNeuron,
 	neuronSteadyState,
+	MODEL_ID,
+	MODEL_SCOPE,
+	COMPARTMENTS,
+	COUPLINGS,
+	PROTOCOLS,
+	simulateMultiCompartmentHH,
+	validateSimulation,
+	writeNeuroEvidence,
 };
