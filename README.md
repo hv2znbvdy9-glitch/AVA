@@ -20,6 +20,10 @@ npx ava "echo hello"
 npx ava --safe-local-node
 ```
 
+```bash
+npx ava --neuron-model
+```
+
 ### As a library
 
 ```js
@@ -37,6 +41,13 @@ const { runSafeLocalNode } = require('ava');
 const result = runSafeLocalNode();
 console.log(result.paths.snapshotJson);
 console.log(result.paths.portalHtml);
+```
+
+```js
+const { neuronModelReport, neuronModelData } = require('ava');
+
+console.log(neuronModelReport());
+console.log(neuronModelData().references.length); // 4
 ```
 
 ### Options

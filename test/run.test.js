@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const os = require('os');
 const {run, runAll, runAsync, runAllParallel} = require('../src/run');
 
 let passed = 0;
@@ -56,8 +57,9 @@ async function main() {
 	});
 
 	await test('should accept a cwd option', () => {
-		const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
-		assert.strictEqual(result.stdout.trim(), '/tmp');
+		const cwd = os.tmpdir();
+		const result = run('node -e "console.log(process.cwd())"', {silent: true, cwd});
+		assert.strictEqual(result.stdout.trim(), cwd);
 		assert.strictEqual(result.exitCode, 0);
 	});
 
@@ -114,8 +116,9 @@ async function main() {
 	});
 
 	await test('runAsync should accept a cwd option', async () => {
-		const result = await runAsync('node -e "console.log(process.cwd())"', {silent: true, cwd: '/tmp'});
-		assert.strictEqual(result.stdout.trim(), '/tmp');
+		const cwd = os.tmpdir();
+		const result = await runAsync('node -e "console.log(process.cwd())"', {silent: true, cwd});
+		assert.strictEqual(result.stdout.trim(), cwd);
 	});
 
 	// runAllParallel tests
