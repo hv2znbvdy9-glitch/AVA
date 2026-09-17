@@ -52,6 +52,13 @@ console.log(result.paths.portalHtml);
 npm test
 ```
 
+## Scientific prototypes
+
+- [Hodgkin-Huxley neuron prototype](docs/hodgkin-huxley-prototype.md) -
+  deterministic single-compartment membrane simulation with regression tests.
+  It is not a full pyramidal-cell model, a learning system, or an autonomous
+  "Jarvis" agent.
+
 ## Security reference examples
 
 - [Hardened C++ gRPC server](examples/grpc-secure/README.md) - mandatory mTLS,
