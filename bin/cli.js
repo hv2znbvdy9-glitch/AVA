@@ -6,8 +6,29 @@ const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
 const {neuronModelReport} = require('../src/neuron-model');
+const {simulate} = require('../src/neuron/hodgkin-huxley');
 
 const args = process.argv.slice(2);
+
+function printNeuronSimulation() {
+	const durationMs = 30;
+	const dt = 0.01;
+	const trace = simulate({
+		durationMs,
+		dt,
+		current: (timeMs) => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
+	});
+	const peakVoltageMv = Math.max(...trace.map((sample) => sample.voltage));
+	console.log(JSON.stringify({
+		model: 'classic-single-compartment-hodgkin-huxley',
+		scope: 'deterministic-teaching-prototype',
+		durationMs,
+		dtMs: dt,
+		samples: trace.length,
+		peakVoltageMv: Number(peakVoltageMv.toFixed(6)),
+		spiked: peakVoltageMv > 0,
+	}, null, 2));
+}
 
 if (args.includes('--color')) {
 	console.log(`${ava()} (${AVA_COLOR})`);
@@ -31,12 +52,18 @@ if (args.includes('--neuron-model')) {
 	process.exit(0);
 }
 
+if (args.includes('--neuron-sim')) {
+	printNeuronSimulation();
+	process.exit(0);
+}
+
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('       ava run <command>');
 	console.error('       ava --parallel <cmd1> [cmd2 ...]');
 	console.error('       ava --safe-local-node');
 	console.error('       ava --neuron-model');
+	console.error('       ava --neuron-sim');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
 }
@@ -50,6 +77,11 @@ if (args[0] === 'safe-local-node') {
 
 if (args[0] === 'neuron-model') {
 	console.log(neuronModelReport());
+	process.exit(0);
+}
+
+if (args[0] === 'neuron-sim') {
+	printNeuronSimulation();
 	process.exit(0);
 }
 
