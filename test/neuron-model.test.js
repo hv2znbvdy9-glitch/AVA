@@ -28,7 +28,6 @@ test('neuronModelReport should include the multi-compartment HH candidate', () =
 	assert.ok(report.includes('Schicht-5-Pyramidenzelle'));
 	assert.ok(report.includes('kein vollständig rekonstruiertes Axon'));
 	assert.ok(report.includes('kein experimentell angepasstes Hay-Modell'));
-	assert.ok(!report.includes('/home/runner/'));
 });
 
 test('neuronModelData should expose candidate and references', () => {
@@ -42,6 +41,8 @@ test('neuronModelData should expose candidate and references', () => {
 test('NEURON_MODEL_REFERENCES should contain stable source entries', () => {
 	assert.strictEqual(NEURON_MODEL_REFERENCES.length, 4);
 	assert.ok(NEURON_MODEL_REFERENCES[0].title.includes('Hay et al.'));
+	assert.ok(Object.isFrozen(NEURON_MODEL_REFERENCES));
+	assert.ok(!neuronModelReport().includes('/home/runner/'));
 });
 
 test('CLI flag --neuron-model should print the report', () => {

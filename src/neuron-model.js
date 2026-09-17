@@ -1,23 +1,23 @@
 'use strict';
 
-const NEURON_MODEL_REFERENCES = [
-	{
+const NEURON_MODEL_REFERENCES = Object.freeze([
+	Object.freeze({
 		title: 'Hay et al. (2011) - L5b pyramidal cell models',
 		url: 'https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002107',
-	},
-	{
+	}),
+	Object.freeze({
 		title: 'DeepDendrite (2023) - GPU simulation with explicit spines',
 		url: 'https://www.nature.com/articles/s41467-023-41553-7',
-	},
-	{
+	}),
+	Object.freeze({
 		title: 'Blue Brain microcircuit reliability study (2019)',
 		url: 'https://www.nature.com/articles/s41467-019-11633-8',
-	},
-	{
+	}),
+	Object.freeze({
 		title: 'Toward reference-grade neuron models (2026)',
 		url: 'https://www.nature.com/articles/s42003-026-10561-w',
-	},
-];
+	}),
+]);
 
 const NEURON_MODEL_REPORT = `AVA Neuronenmodell-Analyse
 
@@ -41,7 +41,8 @@ Wichtig:
 - Ein vollständig integriertes digitales Neuron inklusive kompletter Biochemie, Plastizität, Metabolismus und Glia existiert derzeit nicht.
 
 AVA-Implementierung:
-- ava-neuro-hh-l5-prototype/v1 ist ein ausführbarer Sieben-Kompartiment-Prototyp.
+- ava --neuron-sim startet den klassischen Ein-Kompartiment-Lehrprototyp.
+- ava-neuro-hh-l5-prototype/v1 ist der ausführbare Sieben-Kompartiment-Prototyp (ava --neuro-hh).
 - Er ist kein experimentell angepasstes Hay-Modell und macht keinen solchen Anspruch.
 
 Details:
@@ -68,7 +69,7 @@ function neuronModelData() {
 			id: 'ava-neuro-hh-l5-prototype/v1',
 			status: 'educational-prototype-not-experimentally-fitted',
 		},
-		references: NEURON_MODEL_REFERENCES.slice(),
+		references: NEURON_MODEL_REFERENCES.map((reference) => ({...reference})),
 	};
 }
 

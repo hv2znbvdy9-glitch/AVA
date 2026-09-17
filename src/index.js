@@ -7,6 +7,12 @@ const {runSafeLocalNode} = require('./safe-local-node');
 const {STATE_LABELS, clampScore, classifyState, calculateScore} = require('./state');
 const {neuronModelReport, neuronModelData, NEURON_MODEL_REPORT, NEURON_MODEL_REFERENCES} = require('./neuron-model');
 const {
+	HodgkinHuxleyCompartment,
+	rates: neuronRates,
+	simulate: simulateNeuron,
+	steadyState: neuronSteadyState,
+} = require('./neuron/hodgkin-huxley');
+const {
 	MODEL_ID,
 	MODEL_SCOPE,
 	COMPARTMENTS,
@@ -37,6 +43,10 @@ module.exports = {
 	neuronModelData,
 	NEURON_MODEL_REPORT,
 	NEURON_MODEL_REFERENCES,
+	HodgkinHuxleyCompartment,
+	neuronRates,
+	simulateNeuron,
+	neuronSteadyState,
 	MODEL_ID,
 	MODEL_SCOPE,
 	COMPARTMENTS,

@@ -67,6 +67,21 @@ cidr: info.cidr || '',
 return rows;
 }
 
+function getNetworkSnapshot() {
+try {
+return {
+available: true,
+interfaces: normalizeInterfaces(os.networkInterfaces()),
+};
+} catch (error) {
+return {
+available: false,
+interfaces: [],
+reason: `Network interface metadata unavailable: ${error.message}`,
+};
+}
+}
+
 function buildSnapshot(nowProvider) {
 const cpus = os.cpus();
 
@@ -101,9 +116,7 @@ execPath: process.execPath,
 argv: process.argv,
 }],
 connections: [],
-network: {
-interfaces: normalizeInterfaces(os.networkInterfaces()),
-},
+network: getNetworkSnapshot(),
 wlan: [],
 };
 }

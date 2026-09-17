@@ -25,6 +25,10 @@ npx ava --neuron-model
 ```
 
 ```bash
+npx ava --neuron-sim
+```
+
+```bash
 npx ava --neuro-hh --protocol bac-coincidence --output AVA_EVENTS
 ```
 
@@ -55,6 +59,18 @@ console.log(neuronModelData().references.length); // 4
 ```
 
 ```js
+const {simulateNeuron} = require('ava');
+
+const trace = simulateNeuron({
+  durationMs: 30,
+  dt: 0.01,
+  current: (timeMs) => (timeMs >= 5 && timeMs < 25 ? 10 : 0),
+});
+
+console.log(Math.max(...trace.map((sample) => sample.voltage)));
+```
+
+```js
 const {simulateMultiCompartmentHH} = require('ava');
 
 const result = simulateMultiCompartmentHH({protocol: 'somatic-step'});
@@ -75,15 +91,21 @@ npm test
 npm run test:neuro
 ```
 
-## AVA 01610 Neuro-HH
+## Scientific prototypes
 
-AVA includes a deterministic seven-compartment Hodgkin-Huxley-style Layer-5
-pyramidal-cell **prototype** with Na, K, simplified Ca/KCa/HCN conductances,
-axial coupling and immutable SHA-256 evidence output. It is an educational and
-integration model, not a fitted reproduction of the Hay et al. L5b model.
+- [Neuron-model analysis](docs/biologisch-plausible-neuronenmodelle.md) -
+  source-grounded comparison of detailed biological neuron models.
+- [Hodgkin-Huxley teaching prototype](docs/hodgkin-huxley-prototype.md) -
+  deterministic single-compartment membrane simulation with bounded inputs and
+  regression tests.
+- [AVA 01610 multi-compartment Neuro-HH prototype](docs/AVA_NEURO_HH_IMPLEMENTATION.md) -
+  deterministic seven-compartment Layer-5-style integration model with axial
+  coupling, bounded inputs and immutable SHA-256 evidence directories.
 
-- [Scientific analysis and model boundary](docs/AVA_NEURO_HH_IMPLEMENTATION.md)
-- Windows: `scripts\START_AVA_NEURO_HH_WINDOWS.cmd` (no administrator rights required)
+Both are scientific prototypes, not experimentally fitted full pyramidal-cell
+models, learning systems, or autonomous AVA/JARVIS agents. On Windows, start the
+multi-compartment model without administrator rights using
+`scripts\START_AVA_NEURO_HH_WINDOWS.cmd`.
 
 ## Security reference examples
 

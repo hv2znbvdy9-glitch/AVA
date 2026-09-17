@@ -8,6 +8,7 @@ const {execFileSync} = require('child_process');
 
 let passed = 0;
 let failed = 0;
+let skipped = 0;
 
 function test(name, fn) {
 	try {
@@ -18,7 +19,30 @@ function test(name, fn) {
 		failed++;
 		console.error(`  ✗ ${name}`);
 		console.error(`    ${error.message}`);
+}
+}
+
+function hasPowerShell() {
+	try {
+		execFileSync('pwsh', ['-NoProfile', '-Command', '$null'], {stdio: 'ignore'});
+		return true;
+	} catch (error) {
+		if (error && error.code === 'ENOENT') {
+			return false;
+		}
+		throw error;
 	}
+}
+
+const powerShellAvailable = hasPowerShell();
+
+function powerShellTest(name, fn) {
+	if (!powerShellAvailable) {
+		skipped++;
+		console.log(`  - ${name} (skipped: pwsh unavailable)`);
+		return;
+	}
+	test(name, fn);
 }
 
 const scriptPath = path.join(__dirname, '..', 'scripts', 'AvaSocPortalV5.ps1');
@@ -56,7 +80,7 @@ test('AVA SOC Portal V5 script should exist', () => {
 	assert.ok(fs.existsSync(scriptPath));
 });
 
-test('AVA SOC Portal V5 script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SOC Portal V5 script should parse without PowerShell syntax errors', () => {
 	const escapedPath = scriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -86,7 +110,7 @@ test('AVA 3.14 NEXT LAYER script should exist', () => {
 	assert.ok(fs.existsSync(nextLayerScriptPath));
 });
 
-test('AVA 3.14 NEXT LAYER script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA 3.14 NEXT LAYER script should parse without PowerShell syntax errors', () => {
 	const escapedPath = nextLayerScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -110,7 +134,7 @@ test('AVA 3.14 SAFE LOCAL NODE script should exist', () => {
 	assert.ok(fs.existsSync(safeLocalScriptPath));
 });
 
-test('AVA 3.14 SAFE LOCAL NODE script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA 3.14 SAFE LOCAL NODE script should parse without PowerShell syntax errors', () => {
 	const escapedPath = safeLocalScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -134,7 +158,7 @@ test('AVA WLAN TANGLE SENSOR script should exist', () => {
 	assert.ok(fs.existsSync(wlanSensorScriptPath));
 });
 
-test('AVA WLAN TANGLE SENSOR script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA WLAN TANGLE SENSOR script should parse without PowerShell syntax errors', () => {
 	const escapedPath = wlanSensorScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -161,7 +185,7 @@ test('AVA CORE STACK script should exist', () => {
 	assert.ok(fs.existsSync(coreStackScriptPath));
 });
 
-test('AVA CORE STACK script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA CORE STACK script should parse without PowerShell syntax errors', () => {
 	const escapedPath = coreStackScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -210,7 +234,7 @@ test('AVA SOC Portal V6 script should exist', () => {
 	assert.ok(fs.existsSync(v6ScriptPath));
 });
 
-test('AVA SOC Portal V6 script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SOC Portal V6 script should parse without PowerShell syntax errors', () => {
 	const escapedPath = v6ScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -249,7 +273,7 @@ test('AVA SOC Portal V7 script should exist', () => {
 	assert.ok(fs.existsSync(v7ScriptPath));
 });
 
-test('AVA SOC Portal V7 script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SOC Portal V7 script should parse without PowerShell syntax errors', () => {
 	const escapedPath = v7ScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -290,7 +314,7 @@ test('AVA Baseline Drift script should exist', () => {
 	assert.ok(fs.existsSync(driftScriptPath));
 });
 
-test('AVA Baseline Drift script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA Baseline Drift script should parse without PowerShell syntax errors', () => {
 	const escapedPath = driftScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -328,7 +352,7 @@ test('AVA SPYWARE RISK AUDIT script should exist', () => {
 	assert.ok(fs.existsSync(spywareRiskAuditScriptPath));
 });
 
-test('AVA SPYWARE RISK AUDIT script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SPYWARE RISK AUDIT script should parse without PowerShell syntax errors', () => {
 	const escapedPath = spywareRiskAuditScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -370,7 +394,7 @@ test('AVA Auto Start script should exist', () => {
 	assert.ok(fs.existsSync(autoStartScriptPath));
 });
 
-test('AVA Auto Start script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA Auto Start script should parse without PowerShell syntax errors', () => {
 	const escapedPath = autoStartScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -409,7 +433,7 @@ test('SecurityGuardian script should exist', () => {
 	assert.ok(fs.existsSync(securityGuardianScriptPath));
 });
 
-test('SecurityGuardian script should parse without PowerShell syntax errors', () => {
+powerShellTest('SecurityGuardian script should parse without PowerShell syntax errors', () => {
 	const escapedPath = securityGuardianScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -435,7 +459,7 @@ test('AVA Symbolic Memory Portal script should exist', () => {
 	assert.ok(fs.existsSync(symbolicMemoryPortalScriptPath));
 });
 
-test('AVA Symbolic Memory Portal script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA Symbolic Memory Portal script should parse without PowerShell syntax errors', () => {
 	const escapedPath = symbolicMemoryPortalScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -458,7 +482,7 @@ test('Wandersmann Memory Core script should exist', () => {
 	assert.ok(fs.existsSync(wandersmannMemoryCoreScriptPath));
 });
 
-test('Wandersmann Memory Core script should parse without PowerShell syntax errors', () => {
+powerShellTest('Wandersmann Memory Core script should parse without PowerShell syntax errors', () => {
 	const escapedPath = wandersmannMemoryCoreScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -489,7 +513,7 @@ test('AVA SOC Portal V6 Safe script should exist', () => {
 	assert.ok(fs.existsSync(v6SafeScriptPath));
 });
 
-test('AVA SOC Portal V6 Safe script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SOC Portal V6 Safe script should parse without PowerShell syntax errors', () => {
 	const escapedPath = v6SafeScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -528,7 +552,7 @@ test('AVA SAFE AUDIT CHAT MODE v1 script should exist', () => {
 	assert.ok(fs.existsSync(safeAuditScriptPath));
 });
 
-test('AVA SAFE AUDIT CHAT MODE v1 script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SAFE AUDIT CHAT MODE v1 script should parse without PowerShell syntax errors', () => {
 	const escapedPath = safeAuditScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		"$tokens = $null",
@@ -567,7 +591,7 @@ test('AVA DEVITO 01610 SAFE AUDIT script should exist', () => {
 	assert.ok(fs.existsSync(devito01610ScriptPath));
 });
 
-test('AVA DEVITO 01610 SAFE AUDIT script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA DEVITO 01610 SAFE AUDIT script should parse without PowerShell syntax errors', () => {
 	const escapedPath = devito01610ScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		'$tokens = $null',
@@ -606,7 +630,7 @@ test('AVA SOC Portal V4 script should exist', () => {
 	assert.ok(fs.existsSync(v4ScriptPath));
 });
 
-test('AVA SOC Portal V4 script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA SOC Portal V4 script should parse without PowerShell syntax errors', () => {
 	const escapedPath = v4ScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		'$tokens = $null',
@@ -638,7 +662,7 @@ test('AVA SOC Portal V4 script should define Graph Engine features', () => {
 // AVA 01610 SATELLITE LAB — local defensive simulation
 // ---------------------------------------------------------------------------
 
-test('AVA 01610 SATELLITE LAB script should parse without PowerShell syntax errors', () => {
+powerShellTest('AVA 01610 SATELLITE LAB script should parse without PowerShell syntax errors', () => {
 	const escapedPath = satelliteLabScriptPath.replace(/'/g, "''");
 	const parseCommand = [
 		'$tokens = $null',
@@ -673,7 +697,7 @@ test('AVA 01610 SATELLITE LAB should stay local and avoid privileged system chan
 	}
 });
 
-test('AVA 01610 SATELLITE LAB should run and reject forged and replayed commands', () => {
+powerShellTest('AVA 01610 SATELLITE LAB should run and reject forged and replayed commands', () => {
 	const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ava-01610-lab-'));
 	try {
 		execFileSync('pwsh', [
@@ -694,5 +718,5 @@ test('AVA 01610 SATELLITE LAB should run and reject forged and replayed commands
 	}
 });
 
-console.log(`\n${passed} passing, ${failed} failing`);
+console.log(`\n${passed} passing, ${failed} failing, ${skipped} skipped`);
 process.exit(failed > 0 ? 1 : 0);
