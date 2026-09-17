@@ -36,6 +36,17 @@ jobs:
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on Linux - SUCCESS'"
 
+      - name: Run AVA Neuro-HH model
+        run: node bin/cli.js --neuro-hh --protocol bac-coincidence --output .ava-artifacts/neuro-hh
+
+      - name: Upload AVA Neuro-HH evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ava-neuro-hh-linux
+          path: .ava-artifacts/neuro-hh
+          if-no-files-found: error
+          retention-days: 14
+
   ava-windows:
     name: AVA on Windows
     runs-on: windows-latest
@@ -61,6 +72,17 @@ jobs:
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on Windows - SUCCESS'"
 
+      - name: Run AVA Neuro-HH model
+        run: node bin/cli.js --neuro-hh --protocol bac-coincidence --output .ava-artifacts/neuro-hh
+
+      - name: Upload AVA Neuro-HH evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ava-neuro-hh-windows
+          path: .ava-artifacts/neuro-hh
+          if-no-files-found: error
+          retention-days: 14
+
   ava-macos:
     name: AVA on macOS
     runs-on: macos-latest
@@ -85,6 +107,17 @@ jobs:
 
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on macOS - SUCCESS'"
+
+      - name: Run AVA Neuro-HH model
+        run: node bin/cli.js --neuro-hh --protocol bac-coincidence --output .ava-artifacts/neuro-hh
+
+      - name: Upload AVA Neuro-HH evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ava-neuro-hh-macos
+          path: .ava-artifacts/neuro-hh
+          if-no-files-found: error
+          retention-days: 14
 
   ava-safe-local-node:
     name: AVA Safe Local Node

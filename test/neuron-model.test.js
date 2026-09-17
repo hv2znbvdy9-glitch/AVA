@@ -26,11 +26,15 @@ test('neuronModelReport should include the multi-compartment HH candidate', () =
 	const report = neuronModelReport();
 	assert.ok(report.includes('Multi-Kompartiment-Hodgkin-Huxley-Modell'));
 	assert.ok(report.includes('Schicht-5-Pyramidenzelle'));
+	assert.ok(report.includes('kein vollständig rekonstruiertes Axon'));
+	assert.ok(report.includes('kein experimentell angepasstes Hay-Modell'));
+	assert.ok(!report.includes('/home/runner/'));
 });
 
 test('neuronModelData should expose candidate and references', () => {
 	const data = neuronModelData();
 	assert.strictEqual(typeof data.candidate, 'string');
+	assert.strictEqual(data.implementation.id, 'ava-neuro-hh-l5-prototype/v1');
 	assert.strictEqual(data.references.length, 4);
 	assert.ok(data.references.every((item) => typeof item.url === 'string' && item.url.startsWith('https://')));
 });

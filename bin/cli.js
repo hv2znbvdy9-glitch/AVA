@@ -6,8 +6,22 @@ const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
 const {neuronModelReport} = require('../src/neuron-model');
+const {simulateMultiCompartmentHH, validateSimulation, writeNeuroEvidence} = require('../src/neuro-hh');
 
 const args = process.argv.slice(2);
+
+function optionValue(name) {
+	const index = args.indexOf(name);
+	if (index === -1) {
+		return undefined;
+	}
+
+	if (index === args.length - 1 || args[index + 1].startsWith('--')) {
+		throw new Error(`${name} requires a value`);
+	}
+
+	return args[index + 1];
+}
 
 if (args.includes('--color')) {
 	console.log(`${ava()} (${AVA_COLOR})`);
@@ -31,12 +45,39 @@ if (args.includes('--neuron-model')) {
 	process.exit(0);
 }
 
+if (args.includes('--neuro-hh') || args[0] === 'neuro-hh') {
+	try {
+		const result = simulateMultiCompartmentHH({
+			protocol: optionValue('--protocol') || 'bac-coincidence',
+			durationMs: optionValue('--duration-ms'),
+			dtMs: optionValue('--dt-ms'),
+		});
+		const validation = validateSimulation(result);
+		if (!validation.ok) {
+			throw new Error(`Validation failed: ${validation.issues.join('; ')}`);
+		}
+
+		const evidence = writeNeuroEvidence(result, {outputRoot: optionValue('--output')});
+		console.log(`AVA NEURO HH completed: ${result.model.id}`);
+		console.log(`Protocol: ${result.summary.protocol}`);
+		console.log(`Somatic spikes: ${result.summary.spike_count}`);
+		console.log(`Dendritic calcium events: ${result.summary.dendritic_calcium_event_count}`);
+		console.log(`Evidence: ${evidence.eventDirectory}`);
+		console.log(`Manifest: ${evidence.manifestPath}`);
+		process.exit(0);
+	} catch (error) {
+		console.error(`AVA NEURO HH stopped: ${error.message}`);
+		process.exit(1);
+	}
+}
+
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('       ava run <command>');
 	console.error('       ava --parallel <cmd1> [cmd2 ...]');
 	console.error('       ava --safe-local-node');
 	console.error('       ava --neuron-model');
+	console.error('       ava --neuro-hh [--protocol <name>] [--output <directory>]');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
 }

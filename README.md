@@ -24,6 +24,10 @@ npx ava --safe-local-node
 npx ava --neuron-model
 ```
 
+```bash
+npx ava --neuro-hh --protocol bac-coincidence --output AVA_EVENTS
+```
+
 ### As a library
 
 ```js
@@ -50,6 +54,13 @@ console.log(neuronModelReport());
 console.log(neuronModelData().references.length); // 4
 ```
 
+```js
+const {simulateMultiCompartmentHH} = require('ava');
+
+const result = simulateMultiCompartmentHH({protocol: 'somatic-step'});
+console.log(result.summary.spike_count);
+```
+
 ### Options
 
 | Option   | Type    | Default         | Description                      |
@@ -61,7 +72,18 @@ console.log(neuronModelData().references.length); // 4
 
 ```bash
 npm test
+npm run test:neuro
 ```
+
+## AVA 01610 Neuro-HH
+
+AVA includes a deterministic seven-compartment Hodgkin-Huxley-style Layer-5
+pyramidal-cell **prototype** with Na, K, simplified Ca/KCa/HCN conductances,
+axial coupling and immutable SHA-256 evidence output. It is an educational and
+integration model, not a fitted reproduction of the Hay et al. L5b model.
+
+- [Scientific analysis and model boundary](docs/AVA_NEURO_HH_IMPLEMENTATION.md)
+- Windows: `scripts\START_AVA_NEURO_HH_WINDOWS.cmd` (no administrator rights required)
 
 ## Security reference examples
 

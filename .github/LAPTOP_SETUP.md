@@ -26,6 +26,20 @@ Das Workflow `ava-run.yml` führt AVA automatisch aus auf:
 
 ## 💻 Laptop Setup (Lokale Ausführung als Admin)
 
+### AVA Neuro-HH auf Windows (ohne Admin)
+
+Das Neuronenmodell benötigt keine Administratorrechte, keine Firewalländerung,
+keine geplante Aufgabe und keinen externen Scan. Im geklonten AVA-Ordner:
+
+```cmd
+scripts\START_AVA_NEURO_HH_WINDOWS.cmd
+```
+
+Jeder Lauf erzeugt ein neues, getrenntes SHA-256-Nachweisverzeichnis unter
+`AVA_EVENTS`. ChatGPT oder GitHub Actions können diesen Befehl nicht selbst auf
+einem nicht verbundenen privaten Laptop auslösen; der lokale Start bleibt eine
+bewusste Benutzeraktion.
+
 ### Linux:
 ```bash
 cd /path/to/AVA
