@@ -5,6 +5,7 @@ const {run, runAllParallel} = require('../src/run');
 const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
+const {neuronModelReport} = require('../src/neuron-model');
 
 const args = process.argv.slice(2);
 
@@ -25,11 +26,17 @@ if (args.includes('--safe-local-node')) {
 	process.exit(0);
 }
 
+if (args.includes('--neuron-model')) {
+	console.log(neuronModelReport());
+	process.exit(0);
+}
+
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('       ava run <command>');
 	console.error('       ava --parallel <cmd1> [cmd2 ...]');
 	console.error('       ava --safe-local-node');
+	console.error('       ava --neuron-model');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
 }
@@ -38,6 +45,11 @@ if (args[0] === 'safe-local-node') {
 	const result = runSafeLocalNode();
 	console.log(`SAFE LOCAL NODE completed at: ${result.paths.root}`);
 	console.log(`Portal: ${result.paths.portalHtml}`);
+	process.exit(0);
+}
+
+if (args[0] === 'neuron-model') {
+	console.log(neuronModelReport());
 	process.exit(0);
 }
 
