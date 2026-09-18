@@ -27,7 +27,7 @@ function test(name, fn) {
 
 console.log('github profile report tests\n');
 
-test('githubProfileReport should include the AVA 016101 heading and summary', () => {
+test('githubProfileReport should include the AVA-01610 heading and summary', () => {
 	const report = githubProfileReport();
 	assert.ok(report.includes('AVA-01610 – Hörfassung: GitHub-Profilbericht'));
 	assert.ok(report.includes('Du hast insgesamt **175 offene Issues**'));
@@ -66,6 +66,12 @@ test('CLI alias --profile-report should print the report', () => {
 	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
 	const stdout = execFileSync(process.execPath, [cliPath, '--profile-report'], {encoding: 'utf8'});
 	assert.ok(stdout.includes('## Repositories'));
+});
+
+test('CLI alias profile-report should print the report', () => {
+	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
+	const stdout = execFileSync(process.execPath, [cliPath, 'profile-report'], {encoding: 'utf8'});
+	assert.ok(stdout.includes('**Benutzername:** hv2znbvdy9-glitch'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing`);
