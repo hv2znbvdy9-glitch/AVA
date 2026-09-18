@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node test/run.test.js && node test/color.test.js && node test/neuron-model.test.js && node test/neuron.test.js && node test/scripts.test.js && node test/safe-local-node.test.js && node test/state.test.js",
+    "test": "node test/run.test.js && node test/color.test.js && node test/github-profile-report.test.js && node test/neuron-model.test.js && node test/neuron.test.js && node test/scripts.test.js && node test/safe-local-node.test.js && node test/state.test.js",
     "neuron:model": "node bin/cli.js --neuron-model",
     "neuron:sim": "node bin/cli.js --neuron-sim"
   },

@@ -6,9 +6,14 @@ const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
 const {neuronModelReport} = require('../src/neuron-model');
+const {githubProfileReport} = require('../src/github-profile-report');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 
 const args = process.argv.slice(2);
+const githubProfileFlags = ['--github-profile-report', '--profile-report'];
+const githubProfileCommands = ['github-profile-report', 'profile-report'];
+const wantsGithubProfileReport = githubProfileFlags.some((flag) => args.includes(flag));
+const githubProfileCommand = githubProfileCommands.includes(args[0]);
 
 function printNeuronSimulation() {
 	const durationMs = 30;
@@ -57,6 +62,11 @@ if (args.includes('--neuron-sim')) {
 	process.exit(0);
 }
 
+if (wantsGithubProfileReport) {
+	console.log(githubProfileReport());
+	process.exit(0);
+}
+
 if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('       ava run <command>');
@@ -64,6 +74,8 @@ if (args.length === 0) {
 	console.error('       ava --safe-local-node');
 	console.error('       ava --neuron-model');
 	console.error('       ava --neuron-sim');
+	console.error('       ava --github-profile-report');
+	console.error('       ava --profile-report');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
 }
@@ -82,6 +94,11 @@ if (args[0] === 'neuron-model') {
 
 if (args[0] === 'neuron-sim') {
 	printNeuronSimulation();
+	process.exit(0);
+}
+
+if (githubProfileCommand) {
+	console.log(githubProfileReport());
 	process.exit(0);
 }
 
