@@ -5,6 +5,7 @@ const {run, runAllParallel} = require('../src/run');
 const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
+const {repairWindowsSystemFilesReport} = require('../src/repair-windows-system-files');
 const {neuronModelReport} = require('../src/neuron-model');
 const {githubProfileReport} = require('../src/github-profile-report');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
@@ -52,6 +53,11 @@ if (args.includes('--safe-local-node')) {
 	process.exit(0);
 }
 
+if (args.includes('--repair-windows-system-files')) {
+	console.log(repairWindowsSystemFilesReport());
+	process.exit(0);
+}
+
 if (args.includes('--neuron-model')) {
 	console.log(neuronModelReport());
 	process.exit(0);
@@ -72,6 +78,7 @@ if (args.length === 0) {
 	console.error('       ava run <command>');
 	console.error('       ava --parallel <cmd1> [cmd2 ...]');
 	console.error('       ava --safe-local-node');
+	console.error('       ava --repair-windows-system-files');
 	console.error('       ava --neuron-model');
 	console.error('       ava --neuron-sim');
 	console.error('       ava --github-profile-report');
@@ -84,6 +91,11 @@ if (args[0] === 'safe-local-node') {
 	const result = runSafeLocalNode();
 	console.log(`SAFE LOCAL NODE completed at: ${result.paths.root}`);
 	console.log(`Portal: ${result.paths.portalHtml}`);
+	process.exit(0);
+}
+
+if (args[0] === 'repair-windows-system-files') {
+	console.log(repairWindowsSystemFilesReport());
 	process.exit(0);
 }
 
