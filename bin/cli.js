@@ -10,6 +10,8 @@ const {githubProfileReport} = require('../src/github-profile-report');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 
 const args = process.argv.slice(2);
+const wantsGithubProfileReport = args.includes('--github-profile-report') || args.includes('--profile-report');
+const githubProfileCommand = args[0] === 'github-profile-report' || args[0] === 'profile-report';
 
 function printNeuronSimulation() {
 	const durationMs = 30;
@@ -58,7 +60,7 @@ if (args.includes('--neuron-sim')) {
 	process.exit(0);
 }
 
-if (args.includes('--github-profile-report')) {
+if (wantsGithubProfileReport) {
 	console.log(githubProfileReport());
 	process.exit(0);
 }
@@ -71,6 +73,7 @@ if (args.length === 0) {
 	console.error('       ava --neuron-model');
 	console.error('       ava --neuron-sim');
 	console.error('       ava --github-profile-report');
+	console.error('       ava --profile-report');
 	console.error('Example: ava "echo hello"');
 	process.exit(1);
 }
@@ -92,7 +95,7 @@ if (args[0] === 'neuron-sim') {
 	process.exit(0);
 }
 
-if (args[0] === 'github-profile-report') {
+if (githubProfileCommand) {
 	console.log(githubProfileReport());
 	process.exit(0);
 }

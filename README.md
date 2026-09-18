@@ -36,6 +36,10 @@ npx ava --github-profile-report
 npx ava github-profile-report
 ```
 
+```bash
+npx ava --profile-report
+```
+
 ### As a library
 
 ```js

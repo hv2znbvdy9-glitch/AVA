@@ -62,5 +62,11 @@ test('CLI command github-profile-report should print the report', () => {
 	assert.ok(stdout.includes('**Ende der AVA 016101 Hörfassung.**'));
 });
 
+test('CLI alias --profile-report should print the report', () => {
+	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
+	const stdout = execFileSync(process.execPath, [cliPath, '--profile-report'], {encoding: 'utf8'});
+	assert.ok(stdout.includes('## Repositories'));
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
