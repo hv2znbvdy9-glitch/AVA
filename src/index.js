@@ -7,6 +7,12 @@ const {runSafeLocalNode} = require('./safe-local-node');
 const {STATE_LABELS, clampScore, classifyState, calculateScore} = require('./state');
 const {neuronModelReport, neuronModelData, NEURON_MODEL_REPORT, NEURON_MODEL_REFERENCES} = require('./neuron-model');
 const {
+	githubProfileReport,
+	githubProfileReportData,
+	GITHUB_PROFILE_REPORT_DATA,
+	GITHUB_PROFILE_REPOSITORIES,
+} = require('./github-profile-report');
+const {
 	HodgkinHuxleyCompartment,
 	rates: neuronRates,
 	simulate: simulateNeuron,
@@ -29,6 +35,10 @@ module.exports = {
 	clampScore,
 	classifyState,
 	calculateScore,
+	githubProfileReport,
+	githubProfileReportData,
+	GITHUB_PROFILE_REPORT_DATA,
+	GITHUB_PROFILE_REPOSITORIES,
 	neuronModelReport,
 	neuronModelData,
 	NEURON_MODEL_REPORT,

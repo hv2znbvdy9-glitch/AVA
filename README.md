@@ -28,6 +28,10 @@ npm run neuron:model
 npm run neuron:sim
 ```
 
+```bash
+npx ava --github-profile-report
+```
+
 ### As a library
 
 ```js
@@ -52,6 +56,13 @@ const { neuronModelReport, neuronModelData } = require('ava');
 
 console.log(neuronModelReport());
 console.log(neuronModelData().references.length); // 4
+```
+
+```js
+const {githubProfileReport, githubProfileReportData} = require('ava');
+
+console.log(githubProfileReport());
+console.log(githubProfileReportData().repositories.length); // 3
 ```
 
 ```js
