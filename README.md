@@ -21,6 +21,10 @@ npx ava --safe-local-node
 ```
 
 ```bash
+npx ava --repair-windows-system-files
+```
+
+```bash
 npm run neuron:model
 ```
 
@@ -45,6 +49,12 @@ const { runSafeLocalNode } = require('ava');
 const result = runSafeLocalNode();
 console.log(result.paths.snapshotJson);
 console.log(result.paths.portalHtml);
+```
+
+```js
+const { repairWindowsSystemFilesReport } = require('ava');
+
+console.log(repairWindowsSystemFilesReport());
 ```
 
 ```js
@@ -100,3 +110,8 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 - [Hardened C++ gRPC server](examples/grpc-secure/README.md) - mandatory mTLS,
   certificate-identity authorization, bounded resources, rate limiting, and
   signal-safe graceful shutdown.
+
+## Windows recovery reference
+
+- [Repair Windows system files from WinRE/WinPE](docs/repair-windows-system-files.md) -
+  cautious reboot, BCD check, offline SFC/DISM order, and Startup Repair fallback.
