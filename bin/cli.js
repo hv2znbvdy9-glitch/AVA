@@ -10,7 +10,10 @@ const {githubProfileReport} = require('../src/github-profile-report');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 
 const args = process.argv.slice(2);
-const wantsGithubProfileReport = args.includes('--github-profile-report') || args.includes('--profile-report');
+const wantsGithubProfileReport = (
+	args.includes('--github-profile-report') ||
+	args.includes('--profile-report')
+);
 const githubProfileCommand = args[0] === 'github-profile-report' || args[0] === 'profile-report';
 
 function printNeuronSimulation() {

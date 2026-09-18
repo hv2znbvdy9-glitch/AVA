@@ -49,7 +49,7 @@ const GITHUB_PROFILE_REPOSITORIES = Object.freeze([
 
 const GITHUB_PROFILE_REPORT_DATA = Object.freeze({
 	referenceUrl: 'https://github.com/hv2znbvdy9-glitch',
-	reportId: 'AVA 016101',
+	reportId: 'AVA-01610',
 	title: 'Hörfassung: GitHub-Profilbericht',
 	username: 'hv2znbvdy9-glitch',
 	userId: 256433077,

@@ -29,7 +29,7 @@ console.log('github profile report tests\n');
 
 test('githubProfileReport should include the AVA 016101 heading and summary', () => {
 	const report = githubProfileReport();
-	assert.ok(report.includes('AVA 016101 – Hörfassung: GitHub-Profilbericht'));
+	assert.ok(report.includes('AVA-01610 – Hörfassung: GitHub-Profilbericht'));
 	assert.ok(report.includes('Du hast insgesamt **175 offene Issues**'));
 	assert.ok(report.includes('PowerShell-Projekten'));
 });
@@ -59,7 +59,7 @@ test('CLI flag --github-profile-report should print the report', () => {
 test('CLI command github-profile-report should print the report', () => {
 	const cliPath = path.join(__dirname, '..', 'bin', 'cli.js');
 	const stdout = execFileSync(process.execPath, [cliPath, 'github-profile-report'], {encoding: 'utf8'});
-	assert.ok(stdout.includes('**Ende der AVA 016101 Hörfassung.**'));
+	assert.ok(stdout.includes('**Ende der AVA-01610 Hörfassung.**'));
 });
 
 test('CLI alias --profile-report should print the report', () => {
