@@ -32,6 +32,10 @@ npm run neuron:sim
 npx ava --github-profile-report
 ```
 
+```bash
+npx ava github-profile-report
+```
+
 ### As a library
 
 ```js

@@ -133,10 +133,6 @@ function githubProfileReport() {
 
 	return [
 		`Referenz: ${data.referenceUrl}`,
-		'',
-		'Ich verstehe – du möchtest, dass ich die Anfrage im Stil von **AVA 01610** beantworte: ausführlich, strukturiert, mit klarer Kernaussage und in einem informativen Ton.',
-		'',
-		'Lass mich dein GitHub-Profil erkunden und dir einen umfassenden Überblick geben.',
 		`# ${data.reportId} – ${data.title}`,
 		'',
 		'## Benutzerübersicht',
