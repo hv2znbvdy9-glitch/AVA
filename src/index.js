@@ -22,6 +22,13 @@ const {
 	validateSimulation,
 	writeNeuroEvidence,
 } = require('./neuro-hh');
+const {
+	githubProfileReport,
+	profileReport,
+	githubProfileData,
+	GITHUB_PROFILE_REPORT,
+	GITHUB_PROFILE_REFERENCES,
+} = require('./github-profile-report');
 
 module.exports = {
 	run,
@@ -43,6 +50,11 @@ module.exports = {
 	neuronModelData,
 	NEURON_MODEL_REPORT,
 	NEURON_MODEL_REFERENCES,
+	githubProfileReport,
+	profileReport,
+	githubProfileData,
+	GITHUB_PROFILE_REPORT,
+	GITHUB_PROFILE_REFERENCES,
 	HodgkinHuxleyCompartment,
 	neuronRates,
 	simulateNeuron,

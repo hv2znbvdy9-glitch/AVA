@@ -6,6 +6,7 @@ const {ava, AVA_COLOR} = require('../src/color');
 const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
 const {neuronModelReport} = require('../src/neuron-model');
+const {githubProfileReport} = require('../src/github-profile-report');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 const {simulateMultiCompartmentHH, validateSimulation, writeNeuroEvidence} = require('../src/neuro-hh');
 
@@ -66,6 +67,11 @@ if (args.includes('--neuron-model')) {
 	process.exit(0);
 }
 
+if (args.includes('--github-profile-report') || args.includes('--profile-report')) {
+	console.log(githubProfileReport());
+	process.exit(0);
+}
+
 if (args.includes('--neuron-sim')) {
 	printNeuronSimulation();
 	process.exit(0);
@@ -103,6 +109,8 @@ if (args.length === 0) {
 	console.error('       ava --parallel <cmd1> [cmd2 ...]');
 	console.error('       ava --safe-local-node');
 	console.error('       ava --neuron-model');
+	console.error('       ava --github-profile-report');
+	console.error('       ava --profile-report');
 	console.error('       ava --neuron-sim');
 	console.error('       ava --neuro-hh [--protocol <name>] [--output <directory>]');
 	console.error('Example: ava "echo hello"');
@@ -118,6 +126,11 @@ if (args[0] === 'safe-local-node') {
 
 if (args[0] === 'neuron-model') {
 	console.log(neuronModelReport());
+	process.exit(0);
+}
+
+if (args[0] === 'github-profile-report' || args[0] === 'profile-report') {
+	console.log(githubProfileReport());
 	process.exit(0);
 }
 
