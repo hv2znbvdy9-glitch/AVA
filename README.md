@@ -33,10 +33,17 @@ npm run neuron:sim
 ```js
 const { run } = require('ava');
 
+// Successful command
 const result = run('echo hello', { silent: true });
-console.log(result.stdout); // "hello\n"
-console.log(result.stderr); // ""
+console.log(result.stdout);   // "hello\n"
+console.log(result.stderr);   // ""
 console.log(result.exitCode); // 0
+
+// Failed command — stderr is captured
+const failed = run('node -e "process.stderr.write(\'oops\\n\'); process.exit(1)"', { silent: true });
+console.log(failed.stdout);   // ""
+console.log(failed.stderr);   // "oops\n"
+console.log(failed.exitCode); // 1
 ```
 
 ```js
