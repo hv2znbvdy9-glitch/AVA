@@ -19,34 +19,77 @@ const REPAIR_WINDOWS_SYSTEM_FILES_REFERENCES = Object.freeze([
 	}),
 ]);
 
-const REPAIR_WINDOWS_SYSTEM_FILES_REPORT = `Windows-Systemdateien aus WinRE/WinPE reparieren
+const REPAIR_WINDOWS_SYSTEM_FILES_REPORT = `AVA 01610 „Top 20 WinRE Diagnose + Reparatur“-Reihenfolge (Windows-Systemdateien aus WinRE/WinPE reparieren)
 
-Ausgangslage:
-- C:\\Windows ist vorhanden, aber die aktuelle Eingabeaufforderung läuft in WinRE/WinPE auf X:.
-- Das installierte Windows wird nicht direkt mit explorer.exe aus dieser Sitzung gestartet.
-- Der Rückweg führt über den Windows-Bootmanager und die Offline-Reparaturwerkzeuge.
+Phase 1: Umgebung & Partitionen identifizieren (🟢 Diagnose)
+Ziel dieser Phase ist es, die aktuelle WinRE-Umgebung zu verstehen, Laufwerke zuzuordnen und sicherzustellen, dass wir das richtige Offline-System im Visier haben.
 
-Reihenfolge:
-1. Normal neu starten:
-   wpeutil reboot
+1. Umgebung überprüfen:
+   ver
 
-2. Falls erneut die Starthilfe erscheint, in der CMD prüfen:
+2. Systemlaufwerk abfragen:
+   echo %SystemDrive%
+
+3. Laufwerke auflisten:
+   fsutil fsinfo drives
+
+4. Partitionen & Volumes detailliert einsehen:
+   diskpart
+   list volume
+
+5. Dirty-Bit prüfen:
+   fsutil dirty query C:
+
+6. Windows-Ordner verifizieren:
+   dir C:\\Windows
+
+7. BitLocker-Status abfragen:
+   manage-bde -status C:
+
+Phase 2: Tiefendiagnose & Log-Analyse (🟢 Diagnose)
+Bevor wir etwas verändern, analysieren wir die Boot-Konfiguration und die Log-Dateien, um die Fehlerursache präzise einzugrenzen.
+
+8. Boot-Konfiguration auslesen:
    bcdedit
 
-   Im Abschnitt „Windows Boot Loader“ soll bei osdevice partition=C: stehen.
+9. Fehlende Windows-Installationen suchen:
+   bootrec /scanos
 
-3. Wenn osdevice auf C: zeigt, Systemdateien offline prüfen und reparieren:
-   sfc /scannow /offbootdir=C:\\ /offwindir=C:\\Windows
+10. Offline-Starthilfe-Protokoll lesen:
+    type C:\\Windows\\System32\\Logfiles\\Srt\\SrtTrail.txt
 
-4. Wenn SFC nicht alles reparieren kann:
-   DISM /Image:C:\\ /Cleanup-Image /RestoreHealth
+11. Fehlersuche im Protokoll:
+    findstr /i "error failed fehler" C:\\Windows\\System32\\Logfiles\\Srt\\SrtTrail.txt
 
-5. Danach erneut neu starten:
-   wpeutil reboot
+12. Offline-Ereignisprotokoll abfragen:
+    wevtutil qe C:\\Windows\\System32\\winevt\\Logs\\System.evtx /lf:true /c:20 /rd:true /f:text
 
-Alternative ohne CMD:
-- exit
-- Dann Problembehandlung -> Erweiterte Optionen -> Starthilfe
+13. Dateisystem zerstörungsfrei prüfen:
+    chkdsk C:
+
+14. Systemdateien verifizieren:
+    sfc /verifyonly /offbootdir=C:\\ /offwindir=C:\\Windows
+
+15. Offline-Image-Status prüfen:
+    DISM /Image:C:\\ /Cleanup-Image /CheckHealth
+
+Phase 3: Gezielte, schonende Reparatur (🟡 Gezielte Veränderung)
+Erst wenn die Diagnose eine klare Richtung vorgibt, werden gezielte Reparaturmaßnahmen in dieser Reihenfolge eingeleitet.
+
+16. Dateisystem reparieren:
+    chkdsk C: /f
+
+17. Systemdateien reparieren:
+    sfc /scannow /offbootdir=C:\\ /offwindir=C:\\Windows
+
+18. Komponentenspeicher reparieren:
+    DISM /Image:C:\\ /Cleanup-Image /RestoreHealth
+
+19. Boot-Dateien neu schreiben:
+    bcdboot C:\\Windows
+
+20. Kontrollierter Neustart:
+    wpeutil reboot
 
 Wichtig:
 - Kein icacls C:\\Windows /reset /T
@@ -66,11 +109,27 @@ function repairWindowsSystemFilesData() {
 		environment: 'Windows Recovery Environment (WinRE/WinPE)',
 		bootCheck: 'bcdedit -> Windows Boot Loader -> osdevice should point to partition=C:',
 		commands: [
-			'wpeutil reboot',
+			'ver',
+			'echo %SystemDrive%',
+			'fsutil fsinfo drives',
+			'diskpart',
+			'list volume',
+			'fsutil dirty query C:',
+			'dir C:\\Windows',
+			'manage-bde -status C:',
 			'bcdedit',
+			'bootrec /scanos',
+			'type C:\\Windows\\System32\\Logfiles\\Srt\\SrtTrail.txt',
+			'findstr /i "error failed fehler" C:\\Windows\\System32\\Logfiles\\Srt\\SrtTrail.txt',
+			'wevtutil qe C:\\Windows\\System32\\winevt\\Logs\\System.evtx /lf:true /c:20 /rd:true /f:text',
+			'chkdsk C:',
+			'sfc /verifyonly /offbootdir=C:\\ /offwindir=C:\\Windows',
+			'DISM /Image:C:\\ /Cleanup-Image /CheckHealth',
+			'chkdsk C: /f',
 			'sfc /scannow /offbootdir=C:\\ /offwindir=C:\\Windows',
 			'DISM /Image:C:\\ /Cleanup-Image /RestoreHealth',
-			'exit',
+			'bcdboot C:\\Windows',
+			'wpeutil reboot',
 		],
 		references: REPAIR_WINDOWS_SYSTEM_FILES_REFERENCES.map((reference) => ({...reference})),
 	};
