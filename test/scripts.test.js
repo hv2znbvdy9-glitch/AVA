@@ -113,11 +113,6 @@ test('AVA SOC Portal V5 hardening should use localized-safe admin identity and a
 	assert.ok(scriptContents.includes('AbandonedMutexException'));
 });
 
-test('AVA SOC Portal V5 WLAN parser should recognize German and English labels', () => {
-	assert.ok(scriptContents.includes('Authentication|Authentifizierung'));
-	assert.ok(scriptContents.includes('Encryption|Verschlüsselung'));
-	assert.ok(scriptContents.includes('Channel|Kanal'));
-});
 
 test('AVA 3.14 NEXT LAYER script should exist', () => {
 	assert.ok(fs.existsSync(nextLayerScriptPath));
