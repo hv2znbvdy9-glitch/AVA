@@ -104,6 +104,11 @@ accidentally resolving an unrelated npm package with the common name `ava`.
   deterministic single-compartment membrane simulation with bounded inputs and
   regression tests. It is not a full pyramidal-cell model, learning system, or
   autonomous AVA/JARVIS agent.
+- [AVA 01610 quantum which-path module](docs/ava-01610-quantum-which-path.md) -
+  source-grounded German reference on which-path distinguishability,
+  interference, quantum erasers and delayed choice, with explicit separation
+  between measured effects, interpretation and unsupported consciousness or
+  retrocausality claims.
 
 ## Security reference examples
 
