@@ -37,7 +37,7 @@ test('repairWindowsSystemFilesReport should include the offline repair flow', ()
 test('repairWindowsSystemFilesData should expose commands and reference copies', () => {
 	const data = repairWindowsSystemFilesData();
 	assert.strictEqual(data.environment, 'Windows Recovery Environment (WinRE/WinPE)');
-	assert.strictEqual(data.commands.length, 5);
+	assert.strictEqual(data.commands.length, 21);
 	assert.notStrictEqual(data.references, REPAIR_WINDOWS_SYSTEM_FILES_REFERENCES);
 	assert.ok(data.references.every((item) => typeof item.url === 'string' && item.url.startsWith('https://')));
 });
