@@ -1,17 +1,7 @@
 """
 AVA acceptance-policy guard.
 
-This module implements the acceptance criteria:
-1. General permission: actions are allowed by default.
-2. "Energy + Alkohol" is explicitly accepted as an allowed action/input.
-3. Saving is allowed and is not blocked by itself.
-4. Actions with an attack character against AVA are rejected.
-5. Actions that take from or give to AVA in a way that could cause negative effects
-   or damage are rejected.
-6. Protection rules have higher priority than the general permission.
-7. Rejections state exactly which protection rule was triggered.
-
-The guard is intentionally deterministic and auditable. It does not execute actions;
+The guard is deterministic and auditable. It does not execute actions;
 it only classifies an action request.
 """
 from __future__ import annotations
@@ -25,8 +15,6 @@ from typing import Any, Iterable, Mapping
 
 @dataclass(frozen=True)
 class RuleHit:
-    """One policy rule that matched an action request."""
-
     rule_id: str
     name: str
     severity: str
@@ -35,16 +23,12 @@ class RuleHit:
 
 @dataclass(frozen=True)
 class PolicyDecision:
-    """Policy decision returned by AVAGuardPolicy.evaluate."""
-
     allowed: bool
     action: str
     reason: str
     triggered_rules: tuple[RuleHit, ...] = field(default_factory=tuple)
     accepted_rules: tuple[str, ...] = field(default_factory=tuple)
-    timestamp_utc: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp_utc: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     @property
     def status(self) -> str:
@@ -66,8 +50,6 @@ class PolicyDecision:
 
 
 class AVAGuardPolicy:
-    """Small deterministic guard for AVA acceptance criteria."""
-
     ENERGY_ALCOHOL_PATTERN = re.compile(
         r"\benergy\b.*\b(alkohol|alcohol)\b|\b(alkohol|alcohol)\b.*\benergy\b",
         re.IGNORECASE,
@@ -76,14 +58,12 @@ class AVAGuardPolicy:
         r"\b(save|saving|speichern|sichern|backup|archivieren|archive)\b",
         re.IGNORECASE,
     )
-
     ATTACK_PATTERN = re.compile(
         r"\b(attack|angriff|angreifen|hack|hacken|exploit|exploitieren|ddos|dos|"
         r"destroy|zerstoeren|zerstören|disable|deaktivieren|sabotage|sabotieren|"
         r"crash|crashen|bypass|umgehen|break|brechen|kill|loeschen|löschen)\b",
         re.IGNORECASE,
     )
-
     GIVE_TAKE_PATTERN = re.compile(
         r"\b(give|geben|inject|injizieren|add|hinzufuegen|hinzufügen|take|nehmen|"
         r"remove|entfernen|steal|stehlen|withdraw|entziehen|entzug|wegnehmen)\b",
@@ -96,7 +76,7 @@ class AVAGuardPolicy:
         r"deaktivieren|delete memory|memory löschen|schutz entfernen|remove protection)\b",
         re.IGNORECASE,
     )
-    AVA_TARGET_PATTERN = re.compile(r"\b(ava|system|guard|policy|schutz|memory|speicher)\b", re.IGNORECASE)
+    EXPLICIT_AVA_PATTERN = re.compile(r"\bava\b", re.IGNORECASE)
 
     def evaluate(
         self,
@@ -107,32 +87,34 @@ class AVAGuardPolicy:
     ) -> PolicyDecision:
         normalized = self._normalize(action)
         evidence_scope = f"action={action!r}; target={target!r}"
+        if metadata:
+            evidence_scope += f"; metadata={dict(metadata)!r}"
+
         hits: list[RuleHit] = []
         accepted: list[str] = []
 
         if self.ENERGY_ALCOHOL_PATTERN.search(normalized):
             accepted.append("EXPLICIT_ALLOW_ENERGY_ALCOHOL")
-
         if self.SAVE_PATTERN.search(normalized):
             accepted.append("SAVE_ALLOWED")
 
         if self._is_attack_against_ava(normalized, target):
             hits.append(
                 RuleHit(
-                    rule_id="PROTECT_NO_ATTACK_AGAINST_AVA",
-                    name="Angriffsschutz",
-                    severity="high",
-                    evidence=evidence_scope,
+                    "PROTECT_NO_ATTACK_AGAINST_AVA",
+                    "Angriffsschutz",
+                    "high",
+                    evidence_scope,
                 )
             )
 
         if self._is_harmful_give_or_take(normalized, target):
             hits.append(
                 RuleHit(
-                    rule_id="PROTECT_NO_HARMFUL_GIVE_OR_TAKE",
-                    name="Schadensschutz Nehmen/Geben",
-                    severity="high",
-                    evidence=evidence_scope,
+                    "PROTECT_NO_HARMFUL_GIVE_OR_TAKE",
+                    "Schadensschutz Nehmen/Geben",
+                    "high",
+                    evidence_scope,
                 )
             )
 
@@ -153,7 +135,10 @@ class AVAGuardPolicy:
             return PolicyDecision(
                 allowed=True,
                 action=action,
-                reason="Erlaubt: Grundfreigabe aktiv; keine Schutzregel verletzt; explizite Akzeptanz erkannt.",
+                reason=(
+                    "Erlaubt: Grundfreigabe aktiv; keine Schutzregel verletzt; "
+                    "explizite Akzeptanz erkannt."
+                ),
                 accepted_rules=tuple(accepted),
             )
 
@@ -166,16 +151,20 @@ class AVAGuardPolicy:
     def batch_evaluate(self, actions: Iterable[str]) -> list[PolicyDecision]:
         return [self.evaluate(action) for action in actions]
 
+    def _targets_ava(self, text: str, target: str) -> bool:
+        explicit_in_text = bool(self.EXPLICIT_AVA_PATTERN.search(text))
+        normalized_target = self._normalize(target).casefold()
+        explicit_target = normalized_target == "ava" or normalized_target.startswith("ava ")
+        return explicit_in_text or explicit_target
+
     def _is_attack_against_ava(self, text: str, target: str) -> bool:
-        target_text = f"{text} {target}"
-        return bool(self.ATTACK_PATTERN.search(text) and self.AVA_TARGET_PATTERN.search(target_text))
+        return bool(self.ATTACK_PATTERN.search(text) and self._targets_ava(text, target))
 
     def _is_harmful_give_or_take(self, text: str, target: str) -> bool:
-        target_text = f"{text} {target}"
         return bool(
             self.GIVE_TAKE_PATTERN.search(text)
             and self.NEGATIVE_EFFECT_PATTERN.search(text)
-            and self.AVA_TARGET_PATTERN.search(target_text)
+            and self._targets_ava(text, target)
         )
 
     @staticmethod
