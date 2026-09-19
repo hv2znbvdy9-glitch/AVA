@@ -101,9 +101,22 @@ test('AVA SOC Portal V5 script should not contain pasted template artifacts', ()
 	assert.ok(!scriptContents.includes('2&gt;&amp;1'));
 });
 
-test('AVA SOC Portal V5 script should close the alerts table before the next section', () => {
+test('AVA SOC Portal V5 script should render structured alert and firewall tables', () => {
 	assert.ok(scriptContents.includes('<h2>Alerts</h2>'));
-	assert.ok(scriptContents.includes('</tbody></table>\n</div>\n\n<div class="section card">\n<h2>Firewall Profiles</h2>'));
+	assert.ok(scriptContents.includes('<thead><tr><th>Severity</th><th>Title</th><th>Message</th><th>Score</th><th>Time</th></tr></thead>'));
+	assert.ok(scriptContents.includes('<h2>Firewall Profiles</h2>'));
+});
+
+test('AVA SOC Portal V5 hardening should use localized-safe admin identity and a Tangle mutex', () => {
+	assert.ok(scriptContents.includes("Get-LocalGroupMember -SID 'S-1-5-32-544'"));
+	assert.ok(scriptContents.includes("Global\\AVA_SOC_PORTAL_V5_TANGLE"));
+	assert.ok(scriptContents.includes('AbandonedMutexException'));
+});
+
+test('AVA SOC Portal V5 WLAN parser should recognize German and English labels', () => {
+	assert.ok(scriptContents.includes('Authentication|Authentifizierung'));
+	assert.ok(scriptContents.includes('Encryption|Verschlüsselung'));
+	assert.ok(scriptContents.includes('Channel|Kanal'));
 });
 
 test('AVA 3.14 NEXT LAYER script should exist', () => {
