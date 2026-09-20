@@ -7,6 +7,7 @@ const {overview} = require('../src/overview');
 const {runSafeLocalNode} = require('../src/safe-local-node');
 const {neuronModelReport} = require('../src/neuron-model');
 const {githubProfileReport} = require('../src/github-profile-report');
+const {repairWindowsSystemFilesReport} = require('../src/repair-windows-system-files');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 const {simulateMultiCompartmentHH, validateSimulation, writeNeuroEvidence} = require('../src/neuro-hh');
 
@@ -72,6 +73,11 @@ if (args.includes('--github-profile-report') || args.includes('--profile-report'
 	process.exit(0);
 }
 
+if (args.includes('--repair-windows-system-files')) {
+	console.log(repairWindowsSystemFilesReport());
+	process.exit(0);
+}
+
 if (args.includes('--neuron-sim')) {
 	printNeuronSimulation();
 	process.exit(0);
@@ -111,6 +117,7 @@ if (args.length === 0) {
 	console.error('       ava --neuron-model');
 	console.error('       ava --github-profile-report');
 	console.error('       ava --profile-report');
+	console.error('       ava --repair-windows-system-files');
 	console.error('       ava --neuron-sim');
 	console.error('       ava --neuro-hh [--protocol <name>] [--output <directory>]');
 	console.error('Example: ava "echo hello"');
@@ -131,6 +138,11 @@ if (args[0] === 'neuron-model') {
 
 if (args[0] === 'github-profile-report' || args[0] === 'profile-report') {
 	console.log(githubProfileReport());
+	process.exit(0);
+}
+
+if (args[0] === 'repair-windows-system-files') {
+	console.log(repairWindowsSystemFilesReport());
 	process.exit(0);
 }
 

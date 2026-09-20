@@ -29,6 +29,12 @@ const {
 	GITHUB_PROFILE_REPORT,
 	GITHUB_PROFILE_REFERENCES,
 } = require('./github-profile-report');
+const {
+	repairWindowsSystemFilesReport,
+	repairWindowsSystemFilesData,
+	REPAIR_WINDOWS_SYSTEM_FILES_REPORT,
+	REPAIR_WINDOWS_SYSTEM_FILES_REFERENCES,
+} = require('./repair-windows-system-files');
 
 module.exports = {
 	run,
@@ -55,6 +61,10 @@ module.exports = {
 	githubProfileData,
 	GITHUB_PROFILE_REPORT,
 	GITHUB_PROFILE_REFERENCES,
+	repairWindowsSystemFilesReport,
+	repairWindowsSystemFilesData,
+	REPAIR_WINDOWS_SYSTEM_FILES_REPORT,
+	REPAIR_WINDOWS_SYSTEM_FILES_REFERENCES,
 	HodgkinHuxleyCompartment,
 	neuronRates,
 	simulateNeuron,
