@@ -1,0 +1,45 @@
+{
+  "schema": "ava_admin_policy.v1",
+  "mode": "safe_defensive_local_only",
+  "owner_scope": "authorized_systems_only",
+  "rights": "full_control_on_authorized_systems_only",
+  "purpose": [
+    "Schutz",
+    "Sicherheit",
+    "Beweissicherung",
+    "Defensive Analyse",
+    "Attacke-Abwehr",
+    "Recovery",
+    "Safe Mode"
+  ],
+  "allowed_actions": [
+    "lokale defensive Pruefung",
+    "lokale Log- und Report-Auswertung",
+    "Hash-Pruefung",
+    "Read-only Audit",
+    "lokales HTML-Portal bauen",
+    "gezielter Rollback eigener AVA-Regeln"
+  ],
+  "hard_limits": {
+    "foreign_systems": false,
+    "counterattacks": false,
+    "account_misuse": false,
+    "wifi_disruption": false,
+    "exploits_or_payloads": false,
+    "panic_reactions": false,
+    "violence": false,
+    "blind_autodefense": false
+  },
+  "start_policy": {
+    "START_01_RUNONCE_ADMIN": "allowed_after_hash_check",
+    "START_02_LIVE_PREVIEW_ADMIN": "allowed_preview_only",
+    "START_03_LIVE_AUTODEFENSE_MIT_BESTAETIGUNG_ADMIN": "manual_confirmation_required_not_blind",
+    "START_04_ROLLBACK_BLOCKS_ADMIN": "allowed_only_for_AVA_v4_Block_rules"
+  },
+  "privacy": {
+    "do_not_publish_private_identity_or_location": true,
+    "use_redacted_names_in_reports": true,
+    "keep_local_admin_names_out_of_public_docs": true
+  },
+  "core_rule": "Schutzregeln stehen ueber Vollzugriff. Fremde Systeme und Gegenangriffe bleiben immer NEIN."
+}
