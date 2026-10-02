@@ -36,6 +36,32 @@ AVA_FLASH_IMMUTABLE_RULE
 
 Eine Datei wie `latest.jpg` darf nur eine erneuerbare Vorschaukopie sein. Sie darf niemals das einzige gespeicherte Original darstellen.
 
+## NACHHALL-Invariante
+
+Die Ereignishistorie wird erweitert, nicht rückwirkend umgeschrieben:
+
+```text
+Signal → Beobachtung → Evidenz → Event-ID → Hash → NACHHALL
+                                                       ↓
+                                             neues Ereignis
+```
+
+```text
+E1 = ursprüngliches, persistiertes Ereignis
+E2 = späteres Ereignis
+
+E1 ≠ E2
+E1 bleibt unverändert; E2 wird mit eigener Evidenz, UTC-Zeit,
+Event-ID und SHA-256 angehängt.
+```
+
+Spätere Information darf ein neues Ereignis oder eine neue Entscheidung
+dokumentieren und auf ein bestehendes Ereignis verweisen. Sie darf weder dessen
+Original, Hash, Event-ID noch historische Position ersetzen oder verändern.
+Ein Hash oder eine Hash-Kette kann Integrität belegen beziehungsweise
+Manipulation erkennbar machen; physische Unveränderbarkeit muss separat durch
+die Speicherung gewährleistet werden.
+
 ## Empfohlene Struktur
 
 ```text
