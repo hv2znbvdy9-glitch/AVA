@@ -73,6 +73,8 @@ const devito01610ScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_DEVITO_
 const devito01610ScriptContents = fs.readFileSync(devito01610ScriptPath, 'utf8');
 const satelliteLabScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_01610_SATELLITE_LAB.ps1');
 const satelliteLabScriptContents = fs.readFileSync(satelliteLabScriptPath, 'utf8');
+const smb445FirewallScriptPath = path.join(__dirname, '..', 'scripts', 'AVA_01610_SMB445_FIREWALL.ps1');
+const smb445FirewallScriptContents = fs.readFileSync(smb445FirewallScriptPath, 'utf8');
 
 console.log('script tests\n');
 
@@ -724,6 +726,36 @@ powerShellTest('AVA 01610 SATELLITE LAB should run and reject forged and replaye
 	} finally {
 		fs.rmSync(outputRoot, {recursive: true, force: true});
 	}
+});
+
+test('AVA 01610 SMB 445 firewall helper should exist and default to read-only audit', () => {
+	assert.ok(fs.existsSync(smb445FirewallScriptPath));
+	assert.ok(smb445FirewallScriptContents.includes("[string]$Mode = 'Audit'"));
+	assert.ok(smb445FirewallScriptContents.includes('ChangesMade = $false'));
+});
+
+powerShellTest('AVA 01610 SMB 445 firewall helper should parse without PowerShell syntax errors', () => {
+	const escapedPath = smb445FirewallScriptPath.replace(/'/g, "''");
+	const parseCommand = [
+		'$tokens = $null',
+		'$errors = $null',
+		`[System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors) | Out-Null`,
+		'if ($errors.Count -gt 0) {',
+		'\t$errors | ForEach-Object { $_.Message }',
+		'\texit 1',
+		'}',
+	].join('; ');
+
+	execFileSync('pwsh', ['-NoProfile', '-Command', parseCommand], {stdio: 'pipe'});
+});
+
+test('AVA 01610 SMB 445 firewall helper should scope changes and rollback to its exact inbound TCP 445 rule', () => {
+	assert.ok(smb445FirewallScriptContents.includes('SupportsShouldProcess = $true'));
+	assert.ok(smb445FirewallScriptContents.includes("-Direction Inbound -Action Block -Protocol TCP -LocalPort 445"));
+	assert.ok(smb445FirewallScriptContents.includes("Disable-NetFirewallRule -Name $ruleName"));
+	assert.ok(!smb445FirewallScriptContents.includes('Remove-NetFirewallRule'));
+	assert.ok(!smb445FirewallScriptContents.includes('Invoke-WebRequest'));
+	assert.ok(!smb445FirewallScriptContents.includes('Invoke-RestMethod'));
 });
 
 console.log(`\n${passed} passing, ${failed} failing, ${skipped} skipped`);
