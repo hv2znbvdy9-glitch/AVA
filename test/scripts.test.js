@@ -752,6 +752,7 @@ powerShellTest('AVA 01610 SMB 445 firewall helper should parse without PowerShel
 test('AVA 01610 SMB 445 firewall helper should scope changes and rollback to its exact inbound TCP 445 rule', () => {
 	assert.ok(smb445FirewallScriptContents.includes('SupportsShouldProcess = $true'));
 	assert.ok(smb445FirewallScriptContents.includes("-Direction Inbound -Action Block -Protocol TCP -LocalPort 445"));
+	assert.ok(smb445FirewallScriptContents.includes('if (-not $rule.Enabled)'));
 	assert.ok(smb445FirewallScriptContents.includes("Disable-NetFirewallRule -Name $ruleName"));
 	assert.ok(!smb445FirewallScriptContents.includes('Remove-NetFirewallRule'));
 	assert.ok(!smb445FirewallScriptContents.includes('Invoke-WebRequest'));

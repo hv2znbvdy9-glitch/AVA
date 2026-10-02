@@ -73,7 +73,7 @@ switch ($Mode) {
 			break
 		}
 
-		if ($rule.Enabled -eq 'False') {
+		if (-not $rule.Enabled) {
 			Write-Output "AVA rule '$ruleName' is already disabled; no change was made."
 			break
 		}
