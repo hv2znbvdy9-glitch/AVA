@@ -1,0 +1,77 @@
+name: AVA 01610-1 — Monitor Runs Every 60s
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '* * * * *'  # Every minute
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2880  # 48 hours
+    
+    steps:
+      - name: 🛰️ Fetch CI Run Status (37096869178)
+        id: ci_status
+        run: |
+          CI_RUN=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/hv2znbvdy9-glitch/AVA/actions/runs/37096869178" \
+            | jq -r '{status: .status, conclusion: .conclusion, created_at: .created_at, updated_at: .updated_at}')
+          echo "ci_run<<EOF" >> $GITHUB_OUTPUT
+          echo "$CI_RUN" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "**CI Run 37096869178:**"
+          echo "$CI_RUN" | jq '.'
+
+      - name: 🛰️ Fetch AVA Run Status (37096865813)
+        id: ava_status
+        run: |
+          AVA_RUN=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/hv2znbvdy9-glitch/AVA/actions/runs/37096865813" \
+            | jq -r '{status: .status, conclusion: .conclusion, created_at: .created_at, updated_at: .updated_at}')
+          echo "ava_run<<EOF" >> $GITHUB_OUTPUT
+          echo "$AVA_RUN" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "**AVA Run 37096865813:**"
+          echo "$AVA_RUN" | jq '.'
+
+      - name: 📊 Log Combined Status
+        run: |
+          echo "⏰ Monitor Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo ""
+          echo "CI Run Status:"
+          echo "${{ steps.ci_status.outputs.ci_run }}"
+          echo ""
+          echo "AVA Run Status:"
+          echo "${{ steps.ava_status.outputs.ava_status }}"
+
+      - name: 🔔 Check if Both Completed
+        id: check_complete
+        run: |
+          CI_STATUS=$(echo '${{ steps.ci_status.outputs.ci_run }}' | jq -r '.status')
+          AVA_STATUS=$(echo '${{ steps.ava_status.outputs.ava_status }}' | jq -r '.status')
+          
+          if [ "$CI_STATUS" = "completed" ] && [ "$AVA_STATUS" = "completed" ]; then
+            echo "complete=true" >> $GITHUB_OUTPUT
+            echo "✅ BOTH RUNS COMPLETED"
+          else
+            echo "complete=false" >> $GITHUB_OUTPUT
+            echo "⏳ Still running: CI=$CI_STATUS, AVA=$AVA_STATUS"
+          fi
+
+      - name: 💾 Append to Run Log (Issue Comment)
+        if: always()
+        run: |
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/hv2znbvdy9-glitch/AVA/issues/1/comments \
+            -d "{
+              \"body\": \"### ⏰ Monitor Report - $(date -u +'%Y-%m-%d %H:%M:%S UTC')\n\n**CI Run 37096869178:**\n\`\`\`json\n${{ steps.ci_status.outputs.ci_run }}\n\`\`\`\n\n**AVA Run 37096865813:**\n\`\`\`json\n${{ steps.ava_status.outputs.ava_status }}\n\`\`\`\n\n**Status:** $(if [ '${{ steps.check_complete.outputs.complete }}' = 'true' ]; then echo '✅ COMPLETED'; else echo '⏳ Running'; fi)\"
+            }" || true
+
+      - name: ✋ Stop if Both Complete
+        if: steps.check_complete.outputs.complete == 'true'
+        run: |
+          echo "🛑 Both runs completed. Stopping monitor."
+          exit 0
