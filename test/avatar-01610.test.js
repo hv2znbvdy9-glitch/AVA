@@ -32,7 +32,7 @@ console.log('avatar 01610 tests\n');
 test('report distinguishes the metaphor from physical claims', () => {
 	const report = avatar01610Report();
 	assert.ok(report.includes('Beobachtung → Evidenz → Interpretation'));
-	assert.ok(report.includes('Quantenbegriffe'));
+	assert.ok(report.includes('Quantum-Identität ist hier ausdrücklich eine Metapher'));
 	assert.ok(report.includes('keine Behauptung'));
 });
 
