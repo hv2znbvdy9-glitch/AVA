@@ -13,6 +13,14 @@ const {
 const {STATE_LABELS, clampScore, classifyState, calculateScore} = require('./state');
 const {neuronModelReport, neuronModelData, NEURON_MODEL_REPORT, NEURON_MODEL_REFERENCES} = require('./neuron-model');
 const {
+	avatar01610Report,
+	avatar01610Data,
+	AVATAR_01610_REPORT,
+	AVATAR_01610_LAYERS,
+	AVATAR_01610_CYCLE,
+	AVATAR_01610_PRINCIPLES,
+} = require('./avatar-01610');
+const {
 	HodgkinHuxleyCompartment,
 	rates: neuronRates,
 	simulate: simulateNeuron,
@@ -43,6 +51,12 @@ module.exports = {
 	neuronModelData,
 	NEURON_MODEL_REPORT,
 	NEURON_MODEL_REFERENCES,
+	avatar01610Report,
+	avatar01610Data,
+	AVATAR_01610_REPORT,
+	AVATAR_01610_LAYERS,
+	AVATAR_01610_CYCLE,
+	AVATAR_01610_PRINCIPLES,
 	HodgkinHuxleyCompartment,
 	neuronRates,
 	simulateNeuron,
