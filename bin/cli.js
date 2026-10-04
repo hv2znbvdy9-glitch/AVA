@@ -8,6 +8,7 @@ const {runSafeLocalNode} = require('../src/safe-local-node');
 const {repairWindowsSystemFilesReport} = require('../src/repair-windows-system-files');
 const {neuronModelReport} = require('../src/neuron-model');
 const {githubProfileReport} = require('../src/github-profile-report');
+const {avatar01610Report} = require('../src/avatar-01610');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 
 const args = process.argv.slice(2);
@@ -68,6 +69,11 @@ if (args.includes('--neuron-sim')) {
 	process.exit(0);
 }
 
+if (args.includes('--avatar-01610')) {
+	console.log(avatar01610Report());
+	process.exit(0);
+}
+
 if (wantsGithubProfileReport) {
 	console.log(githubProfileReport());
 	process.exit(0);
@@ -81,6 +87,7 @@ if (args.length === 0) {
 	console.error('       ava --repair-windows-system-files');
 	console.error('       ava --neuron-model');
 	console.error('       ava --neuron-sim');
+	console.error('       ava --avatar-01610');
 	console.error('       ava --github-profile-report');
 	console.error('       ava --profile-report');
 	console.error('Example: ava "echo hello"');
@@ -106,6 +113,11 @@ if (args[0] === 'neuron-model') {
 
 if (args[0] === 'neuron-sim') {
 	printNeuronSimulation();
+	process.exit(0);
+}
+
+if (args[0] === 'avatar-01610') {
+	console.log(avatar01610Report());
 	process.exit(0);
 }
 

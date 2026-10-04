@@ -32,7 +32,18 @@ npm run neuron:model
 npm run neuron:sim
 ```
 
+```bash
+node bin/cli.js --avatar-01610
+```
+
 ### As a library
+
+```js
+const { avatar01610Report, avatar01610Data } = require('ava');
+
+console.log(avatar01610Report());
+console.log(avatar01610Data().cycle);
+```
 
 ```js
 const { run } = require('ava');
@@ -94,7 +105,9 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 
 ## Scientific prototypes
 
-
+- [AVATAR–01610 DEVITO: Realität ist nicht flach](docs/avatar-01610-devito.md) -
+  layered symbolic framework, evidence cycle, and quantum terms explicitly
+  framed as metaphor.
 - [AVA 01610 neuron-model analysis](docs/biologisch-plausible-neuronenmodelle.md) -
   German, source-grounded separation of the implemented prototype from future
   multi-compartment targets.
