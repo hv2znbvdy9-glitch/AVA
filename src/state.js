@@ -27,7 +27,11 @@ const STATE_LABELS = {
  * @returns {number} The clamped integer score.
  */
 function clampScore(value) {
-	return Math.max(-3, Math.min(3, Math.round(value)));
+	const numericValue = Number(value);
+	if (!Number.isFinite(numericValue)) {
+		return 0;
+	}
+	return Math.max(-3, Math.min(3, Math.round(numericValue)));
 }
 
 /**
@@ -64,9 +68,23 @@ function calculateScore(signals) {
 	let totalWeight = 0;
 
 	for (const signal of signals) {
-		const weight = signal.weight !== undefined ? signal.weight : 1;
-		weightedSum += signal.value * weight;
+		if (!signal || typeof signal !== 'object') {
+			throw new Error('signals must be a non-empty array');
+		}
+
+		const rawValue = Number(signal.value);
+		const rawWeight = signal.weight !== undefined ? Number(signal.weight) : 1;
+		if (!Number.isFinite(rawValue) || !Number.isFinite(rawWeight) || rawWeight === 0) {
+			throw new Error('signals must be a non-empty array');
+		}
+
+		const weight = rawWeight;
+		weightedSum += rawValue * weight;
 		totalWeight += weight;
+	}
+
+	if (totalWeight === 0) {
+		throw new Error('signals must be a non-empty array');
 	}
 
 	const average = weightedSum / totalWeight;
