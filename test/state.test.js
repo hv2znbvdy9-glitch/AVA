@@ -148,5 +148,17 @@ test('calculateScore throws for non-array argument', () => {
 	assert.throws(() => calculateScore(null), {message: 'signals must be a non-empty array'});
 });
 
+test('calculateScore rejects invalid signal objects', () => {
+	assert.throws(() => calculateScore([{value: Number.NaN}]), {message: 'signals must be a non-empty array'});
+	assert.throws(() => calculateScore([{value: 1, weight: 0}]), {message: 'signals must be a non-empty array'});
+	assert.throws(() => calculateScore([null]), {message: 'signals must be a non-empty array'});
+});
+
+test('clampScore returns 0 for non-finite values', () => {
+	assert.strictEqual(clampScore(Number.NaN), 0);
+	assert.strictEqual(clampScore(Number.POSITIVE_INFINITY), 0);
+	assert.strictEqual(clampScore(Number.NEGATIVE_INFINITY), 0);
+});
+
 console.log(`\n${passed} passing, ${failed} failing`);
 process.exit(failed > 0 ? 1 : 0);
