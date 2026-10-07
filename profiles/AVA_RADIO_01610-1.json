@@ -1,0 +1,12 @@
+{
+  "name": "AVA_RADIO_01610~1",
+  "style": "futuristic_ai_radio",
+  "effects": {
+    "pitch_shift": 3,
+    "echo": true,
+    "radio_filter": true,
+    "glitch": true,
+    "distortion": 0.15
+  },
+  "version": "0.1"
+}
