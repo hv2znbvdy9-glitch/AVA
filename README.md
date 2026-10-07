@@ -117,6 +117,8 @@ accidentally resolving an unrelated npm package with the common name `ava`.
   deterministic single-compartment membrane simulation with bounded inputs and
   regression tests. It is not a full pyramidal-cell model, learning system, or
   autonomous AVA/JARVIS agent.
+- [AVA Voice Prototype](docs/ava-voice-prototype.md) - offline PCM effects using
+  a creative radio-style profile; it does not capture or play audio.
 
 ## Security reference examples
 
