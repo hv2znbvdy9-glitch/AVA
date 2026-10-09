@@ -1,0 +1,26 @@
+name: AVA 01610 Scale Lab (offline)
+
+on:
+  pull_request:
+    paths:
+      - 'ava/scale_lab.py'
+      - 'tests/test_ava_scale_lab.py'
+      - '.github/workflows/ava-01610-scale-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_ava_scale_lab.py' -v
+      - name: Offline bounded demonstration
+        run: python -m ava.scale_lab --nodes 690000000 --samples 1000 --seed 1610
