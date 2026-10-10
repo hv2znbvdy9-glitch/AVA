@@ -9,6 +9,7 @@ const {repairWindowsSystemFilesReport} = require('../src/repair-windows-system-f
 const {neuronModelReport} = require('../src/neuron-model');
 const {githubProfileReport} = require('../src/github-profile-report');
 const {avatar01610Report} = require('../src/avatar-01610');
+const {cubeSat01610Report, simulateCubeSat} = require('../src/cubesat-01610');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
 
 const args = process.argv.slice(2);
@@ -74,6 +75,17 @@ if (args.includes('--avatar-01610')) {
 	process.exit(0);
 }
 
+if (args.includes('--cubesat')) {
+	console.log(cubeSat01610Report());
+	process.exit(0);
+}
+
+if (args.includes('--cubesat-sim')) {
+	const sim = simulateCubeSat();
+	console.log(JSON.stringify(sim.summary, null, 2));
+	process.exit(0);
+}
+
 if (wantsGithubProfileReport) {
 	console.log(githubProfileReport());
 	process.exit(0);
@@ -88,6 +100,8 @@ if (args.length === 0) {
 	console.error('       ava --neuron-model');
 	console.error('       ava --neuron-sim');
 	console.error('       ava --avatar-01610');
+	console.error('       ava --cubesat');
+	console.error('       ava --cubesat-sim');
 	console.error('       ava --github-profile-report');
 	console.error('       ava --profile-report');
 	console.error('Example: ava "echo hello"');
@@ -118,6 +132,17 @@ if (args[0] === 'neuron-sim') {
 
 if (args[0] === 'avatar-01610') {
 	console.log(avatar01610Report());
+	process.exit(0);
+}
+
+if (args[0] === 'cubesat') {
+	console.log(cubeSat01610Report());
+	process.exit(0);
+}
+
+if (args[0] === 'cubesat-sim') {
+	const sim = simulateCubeSat();
+	console.log(JSON.stringify(sim.summary, null, 2));
 	process.exit(0);
 }
 

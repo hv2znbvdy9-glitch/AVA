@@ -36,7 +36,23 @@ npm run neuron:sim
 node bin/cli.js --avatar-01610
 ```
 
+```bash
+node bin/cli.js --cubesat
+```
+
+```bash
+node bin/cli.js --cubesat-sim
+```
+
 ### As a library
+
+```js
+const { cubeSat01610Report, cubeSat01610Data, simulateCubeSat } = require('ava');
+
+console.log(cubeSat01610Report());
+const sim = simulateCubeSat({ durationMinutes: 190 });
+console.log(sim.summary);
+```
 
 ```js
 const { avatar01610Report, avatar01610Data } = require('ava');
@@ -105,6 +121,9 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 
 ## Scientific prototypes
 
+- [AVA 01610-1: CubeSat-Eigenbau (Evidenz vor Aktion)](docs/ava-01610-cubesat-eigenbau.md) -
+  1U CubeSat ground simulation, EPS power budget, SHA-256 telemetry evidence chain,
+  HMAC-SHA256 authenticated command verification, and multi-tier budget analysis.
 - [AVATAR–01610 DEVITO: Realität ist nicht flach](docs/avatar-01610-devito.md) -
   layered symbolic framework, evidence cycle, and quantum terms explicitly
   framed as metaphor.
