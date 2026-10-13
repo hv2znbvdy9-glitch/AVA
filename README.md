@@ -120,6 +120,8 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 - [AVA Voice Prototype](docs/ava-voice-prototype.md) - offline PCM effects using
   a creative radio-style profile; it does not capture or play audio.
 
+- [AVA / AVO 01610 Scale Lab](docs/AVA-01610-scale-lab.md) - bounded, reproducible estimates for up to 690 million logical nodes; no infrastructure is created.
+
 ## Security reference examples
 
 - [Hardened C++ gRPC server](examples/grpc-secure/README.md) - mandatory mTLS,
