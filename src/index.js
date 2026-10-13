@@ -28,6 +28,7 @@ const {
 } = require('./neuron/hodgkin-huxley');
 const {AVA_RADIO_PROFILE} = require('./voice/config');
 const {processAudio} = require('./voice/engine');
+const {MAX_TARGET_NODES, simulateScale} = require('./scale-lab');
 
 module.exports = {
 	run,
@@ -65,4 +66,6 @@ module.exports = {
 	neuronSteadyState,
 	AVA_RADIO_PROFILE,
 	processAudio,
+	MAX_TARGET_NODES,
+	simulateScale,
 };

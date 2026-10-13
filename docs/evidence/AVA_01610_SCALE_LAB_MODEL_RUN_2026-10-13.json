@@ -1,0 +1,9 @@
+{
+  "schema": "ava.01610.scale-lab.v1",
+  "createdAt": "2026-10-13T18:30:41.782Z",
+  "mode": "analytical-estimate-plus-bounded-deterministic-sample",
+  "target": {"logicalNodes": 690000000, "maximumConfiguredTarget": 690000000, "sampledNodes": 10000, "seed": 1610},
+  "assumptions": {"bytesPerNode": 512, "messagesPerNodePerHour": 6, "payloadBytes": 128, "failureProbability": 0.001, "energyWattsPerNode": null},
+  "results": {"logicalStateBytes": 353280000000, "logicalStateGiB": 329.01763916015625, "estimatedMessagesPerSecond": 1150000, "estimatedPayloadBandwidthMbps": 1177.6, "estimatedEventLogBytesPerDay": 22256640000000, "expectedFailedNodesFromAssumedRate": 690000, "sampledFailedNodes": 8, "sampledFailureFraction": 0.0008, "estimatedPowerKwFromExplicitAssumption": null},
+  "boundaries": {"physicalServersCreated": 0, "processesOrWorkersCreated": 0, "networkCallsMade": 0, "cloudResourcesProvisioned": false, "energyMeasured": false, "medicalAssessmentPerformed": false, "interpretation": "All capacity values are model estimates based on declared assumptions, not measured infrastructure results."}
+}
