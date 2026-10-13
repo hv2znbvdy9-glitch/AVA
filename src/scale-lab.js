@@ -13,15 +13,15 @@ const DEFAULTS = Object.freeze({
   energyWattsPerNode: null,
 });
 
-function requireInteger(name, value, {min = 0, max = Number.MAX_SAFE_INTEGER} = {}) {
+function requireInteger(name, value, min, max) {
   if (!Number.isSafeInteger(value) || value < min || value > max) {
-    throw new RangeError(`${name} must be a safe integer between ${min} and ${max}`);
+    throw new RangeError(name + ' must be a safe integer between ' + min + ' and ' + max);
   }
 }
 
 function requireFiniteRange(name, value, min, max) {
   if (!Number.isFinite(value) || value < min || value > max) {
-    throw new RangeError(`${name} must be finite and between ${min} and ${max}`);
+    throw new RangeError(name + ' must be finite and between ' + min + ' and ' + max);
   }
 }
 
@@ -36,18 +36,18 @@ function makeRng(seed) {
   };
 }
 
-/**
+/*
  * Estimate a large logical-node topology without creating nodes, workers,
- * network connections, cloud resources, or files. Only `sampleSize` random
+ * network connections, cloud resources, or files. Only sampleSize random
  * observations are generated; the full topology is calculated analytically.
  */
-function simulateScale(options = {}) {
-  const config = {...DEFAULTS, ...options};
-  requireInteger('nodeCount', config.nodeCount, {min: 1, max: MAX_TARGET_NODES});
-  requireInteger('sampleSize', config.sampleSize, {min: 1, max: MAX_SAMPLE_SIZE});
-  requireInteger('seed', config.seed, {min: 0, max: Number.MAX_SAFE_INTEGER});
-  requireInteger('bytesPerNode', config.bytesPerNode, {min: 1, max: 1_000_000_000});
-  requireInteger('payloadBytes', config.payloadBytes, {min: 0, max: 1_000_000_000});
+function simulateScale(options) {
+  const config = Object.assign({}, DEFAULTS, options || {});
+  requireInteger('nodeCount', config.nodeCount, 1, MAX_TARGET_NODES);
+  requireInteger('sampleSize', config.sampleSize, 1, MAX_SAMPLE_SIZE);
+  requireInteger('seed', config.seed, 0, Number.MAX_SAFE_INTEGER);
+  requireInteger('bytesPerNode', config.bytesPerNode, 1, 1_000_000_000);
+  requireInteger('payloadBytes', config.payloadBytes, 0, 1_000_000_000);
   requireFiniteRange('messagesPerNodePerHour', config.messagesPerNodePerHour, 0, 1_000_000_000);
   requireFiniteRange('failureProbability', config.failureProbability, 0, 1);
   if (config.energyWattsPerNode !== null) {
@@ -77,7 +77,7 @@ function simulateScale(options = {}) {
     target: {
       logicalNodes: config.nodeCount,
       maximumConfiguredTarget: MAX_TARGET_NODES,
-      sampledNodes,
+      sampledNodes: sampledNodes,
       seed: config.seed,
     },
     assumptions: {
@@ -88,7 +88,7 @@ function simulateScale(options = {}) {
       energyWattsPerNode: config.energyWattsPerNode,
     },
     results: {
-      logicalStateBytes,
+      logicalStateBytes: logicalStateBytes,
       logicalStateGiB: logicalStateBytes / (1024 ** 3),
       estimatedMessagesPerSecond: messagesPerSecond,
       estimatedPayloadBandwidthMbps: bandwidthMbps,
@@ -124,15 +124,13 @@ function parseArgs(argv) {
   ]);
   for (let index = 0; index < argv.length; index += 1) {
     const key = argv[index];
-    if (key === '--help' || key === '-h') {
-      return {help: true};
-    }
-    if (!keys.has(key)) throw new Error(`Unknown argument: ${key}`);
+    if (key === '--help' || key === '-h') return {help: true};
+    if (!keys.has(key)) throw new Error('Unknown argument: ' + key);
     const raw = argv[index + 1];
-    if (raw === undefined || rawstartsWith('--')) throw new Error(`Missing value for ${key}`);
+    if (raw === undefined || raw.startsWith('--')) throw new Error('Missing value for ' + key);
     const option = keys.get(key);
     const numeric = Number(raw);
-    if (!Number.isFinite(numeric)) throw new Error(`Invalid numeric value for ${key}`);
+    if (!Number.isFinite(numeric)) throw new Error('Invalid numeric value for ' + key);
     options[option] = numeric;
     index += 1;
   }
@@ -143,16 +141,9 @@ if (require.main === module) {
   try {
     const options = parseArgs(process.argv.slice(2));
     if (options.help) {
-      process.stdout.write(
-        'AVA 01610 SCALE LAB (bounded simulation; no infrastructure is created)\n' +
-        'Usage: node src/scale-lab.js [--nodes NW] [--sample-size N] [--seed NW]
-' +
-        '      [--bytes-per-node N] [--messages-per-node-per-hour N]\n' +
-        '      [--payload-bytes NW] [--failure-probability 0..1]\n' +
-        '      [--energy-watts-per-node W]\n',
-      );
+      process.stdout.write('AVA 01610 SCALE LAB: bounded model; no infrastructure is created.\n');
     } else {
-      process.stdout.write(@{JSON.stringify(simulateScale(options), null, 2)}\n");
+      process.stdout.write(JSON.stringify(simulateScale(options), null, 2) + '\n');
     }
   } catch (error) {
     process.stderr.write('AVA SCALE LAB error: ' + error.message + '\n');
