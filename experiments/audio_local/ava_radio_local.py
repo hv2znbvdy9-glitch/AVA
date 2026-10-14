@@ -11,7 +11,7 @@ import math
 import struct
 import wave
 from pathlib import Path
-from typing import Iterable
+
 
 MAX_INPUT_BYTES = 50 * 1024 * 1024
 MAX_DURATION_SECONDS = 300
@@ -25,34 +25,12 @@ class AudioInputError(ValueError):
     """Raised when the input WAV is outside the prototype's safe limits."""
 
 
-def _highpass(samples: Iterable[float], sample_rate: int, cutoff_hz: float) -> list[float]:
-    rc = 1.0 / (2.0 * math.pi * cutoff_hz)
-    dt = 1.0 / sample_rate
-    alpha = rc / (rc + dt)
-    out: list[float] = []
-    previous_x = 0.0
-    previous_y = 0.0
-    for x in samples:
-        y = alpha * (previous_y + x - previous_x)
-        out.append(y)
-        previous_x, previous_y = x, y
-    return out
-
-
-def _lowpass(samples: Iterable[float], sample_rate: int, cutoff_hz: float) -> list[float]:
-    rc = 1.0 / (2.0 * math.pi * cutoff_hz)
-    dt = 1.0 / sample_rate
-    alpha = dt / (rc + dt)
-    out: list[float] = []
-    previous_y = 0.0
-    for x in samples:
-        previous_y += alpha * (x - previous_y)
-        out.append(previous_y)
-    return out
-
-
 def radio_filter_pcm16(raw_frames: bytes, channels: int, sample_rate: int) -> bytes:
-    """Apply a mild band-limited, softly saturated radio effect to PCM16 frames."""
+    """Apply a mild band-limited, softly saturated radio effect to PCM16 frames.
+
+    Samples are filtered in a single pass with per-channel filter state, avoiding
+    large per-sample Python lists. The only full-sized buffers are input and output.
+    """
     if channels not in SUPPORTED_CHANNELS:
         raise AudioInputError("only mono or stereo WAV input is supported")
     if not 8_000 <= sample_rate <= 192_000:
@@ -60,29 +38,28 @@ def radio_filter_pcm16(raw_frames: bytes, channels: int, sample_rate: int) -> by
     if len(raw_frames) % (SUPPORTED_SAMPLE_WIDTH * channels):
         raise AudioInputError("audio frame data is incomplete")
 
-    count = len(raw_frames) // 2
-    integer_samples = struct.unpack("<" + "h" * count, raw_frames) if count else ()
-    per_channel: list[list[float]] = [[] for _ in range(channels)]
-    for frame_index in range(0, len(integer_samples), channels):
-        for channel in range(channels):
-            per_channel[channel].append(integer_samples[frame_index + channel] / 32768.0)
+    hp_rc = 1.0 / (2.0 * math.pi * LOW_CUTOFF_HZ)
+    dt = 1.0 / sample_rate
+    hp_alpha = hp_rc / (hp_rc + dt)
+    lp_rc = 1.0 / (2.0 * math.pi * HIGH_CUTOFF_HZ)
+    lp_alpha = dt / (lp_rc + dt)
+    previous_x = [0.0] * channels
+    previous_hp_y = [0.0] * channels
+    previous_lp_y = [0.0] * channels
+    output = bytearray(len(raw_frames))
 
-    processed: list[list[int]] = []
-    for samples in per_channel:
-        filtered = _highpass(samples, sample_rate, LOW_CUTOFF_HZ)
-        filtered = _lowpass(filtered, sample_rate, HIGH_CUTOFF_HZ)
+    for index, (sample_int,) in enumerate(struct.iter_unpack("<h", raw_frames)):
+        channel = index % channels
+        x = sample_int / 32768.0
+        hp_y = hp_alpha * (previous_hp_y[channel] + x - previous_x[channel])
+        previous_x[channel] = x
+        previous_hp_y[channel] = hp_y
+        lp_y = previous_lp_y[channel] + lp_alpha * (hp_y - previous_lp_y[channel])
+        previous_lp_y[channel] = lp_y
         # Mild drive makes the result read as a generic radio effect.
-        processed.append([
-            max(-32768, min(32767, round(math.tanh(value * 2.0) * 0.92 * 32767)))
-            for value in filtered
-        ])
-
-    interleaved: list[int] = []
-    frame_count = len(processed[0]) if processed else 0
-    for i in range(frame_count):
-        for channel in range(channels):
-            interleaved.append(processed[channel][i])
-    return struct.pack("<" + "h" * len(interleaved), *interleaved) if interleaved else b""
+        result = max(-32768, min(32767, round(math.tanh(lp_y * 2.0) * 0.92 * 32767)))
+        struct.pack_into("<h", output, index * 2, result)
+    return bytes(output)
 
 
 def process_wav(input_path: str | Path, output_path: str | Path, *, overwrite: bool = False) -> dict[str, object]:
