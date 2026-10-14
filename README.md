@@ -103,6 +103,14 @@ npm test
 The npm scripts above deliberately use the repository-local CLI. This avoids
 accidentally resolving an unrelated npm package with the common name `ava`.
 
+## Project documentation
+
+- [Architecture](ARCHITECTURE.md) and [API reference](API_REFERENCE.md)
+- [Getting started](GETTING_STARTED.md) and [contributing](CONTRIBUTING.md)
+- [Python modules](PYTHON_MODULES.md) and [PowerShell scripts](POWERSHELL_SCRIPTS.md)
+- [Security audit](SECURITY_AUDIT.md) and [modernization roadmap](MODERNIZATION.md)
+- [Immutable event rule](docs/AVA_FLASH_IMMUTABLE_RULE.md)
+
 ## Scientific prototypes
 
 - [AVATAR–01610 DEVITO: Realität ist nicht flach](docs/avatar-01610-devito.md) -
