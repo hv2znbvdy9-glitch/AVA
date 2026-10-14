@@ -51,3 +51,7 @@ console.log(result.paths.portalHtml);
 ```bash
 npm test
 ```
+
+## Dokumentation
+
+Siehe [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) für die Bestandsaufnahme.
