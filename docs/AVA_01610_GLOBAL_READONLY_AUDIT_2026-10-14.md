@@ -149,3 +149,13 @@ Die Versuche laufen auf den bestehenden Commit-SHAs `6d293b38d1aaea9924b3bc8326f
 ## 10. Ausführungsgrenze
 
 Die verbundene GitHub-Schnittstelle stellt für diese Sitzung keine neue `workflow_dispatch`-Aktion bereit. Daher wurden keine neuen Workflows in allen sechs Repositories pauschal ausgelöst; nur die drei vorhandenen fehlgeschlagenen Testläufe konnten über die verfügbare Retry-Aktion neu gestartet werden. Für `DE.VI.TO` ist im Standardbranch kein Workflow vorhanden. Auf realen Windows-Laptops wurde nichts gestartet und kein privilegiertes Skript ausgeführt. GitHub-Dateizugriff ist kein Fernzugriff auf lokale Geräte.
+
+
+## 11. Ergebnis der erneuten Testabfrage
+
+Eine spätere Abfrage der neu gestarteten Versuche ergab:
+- `69-007/AVA` Tests, Run `37837416840`, Attempt 7: mehrere Python-Matrixjobs sind erneut fehlgeschlagen. Der Log bestätigt erneut `ImportError: cannot import name 'threat_log' from 'ava.security'` während der Collection von `tests/test_wellbeing.py`; das Problem wurde durch das Wiederholen nicht behoben.
+- `69-007/AVA` Python Smoke CI, Run `37837416846`, Attempt 7: die abgeschlossenen Matrixjobs scheiterten aus demselben `threat_log`-Importfehler.
+- `AVA-007` Run `37056290532`, Attempt 40: zum letzten Statusabruf noch `in_progress`; alle dort bereits abgeschlossenen Windows-/macOS-Matrixjobs, Lint und Lockfile-Check waren erfolgreich, während Linux-Matrixjobs und der Install-ohne-Lockfile-Job noch liefen. Eine endgültige Schlussfolgerung zu diesem Versuch ist daher noch nicht möglich.
+
+Es wurden keine weiteren Retry-Aktionen ausgeführt. Das reproduzierte 69-007/AVA-Fehlerbild benötigt einen Quellcode-Fix, bevor erneute Wiederholungen aussagekräftig werden.
