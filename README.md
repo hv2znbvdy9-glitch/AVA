@@ -89,10 +89,11 @@ console.log(Math.max(...trace.map((sample) => sample.voltage)));
 
 ### Options
 
-| Option   | Type    | Default         | Description                      |
-|----------|---------|-----------------|----------------------------------|
-| `silent` | boolean | `false`         | Suppress stdout output           |
-| `cwd`    | string  | `process.cwd()` | Working directory for the command |
+| Option    | Type              | Default          | Description                                  |
+|-----------|-------------------|------------------|----------------------------------------------|
+| `silent`  | boolean           | `false`          | Suppress output written to parent streams   |
+| `cwd`     | string            | `process.cwd()`  | Working directory for the command            |
+| `timeout` | positive integer  | unset            | Optional command timeout in milliseconds     |
 
 ## Testing
 
@@ -102,6 +103,14 @@ npm test
 
 The npm scripts above deliberately use the repository-local CLI. This avoids
 accidentally resolving an unrelated npm package with the common name `ava`.
+
+## Project documentation
+
+- [Architecture](ARCHITECTURE.md) and [API reference](API_REFERENCE.md)
+- [Getting started](GETTING_STARTED.md) and [contributing](CONTRIBUTING.md)
+- [Python modules](PYTHON_MODULES.md) and [PowerShell scripts](POWERSHELL_SCRIPTS.md)
+- [Security audit](SECURITY_AUDIT.md) and [modernization roadmap](MODERNIZATION.md)
+- [Immutable event rule](docs/AVA_FLASH_IMMUTABLE_RULE.md)
 
 ## Scientific prototypes
 
