@@ -15,7 +15,8 @@ that a feature is already implemented.
    aligned with their parameters and implementation.
 3. **CI coverage:** ensure the ordinary CI validates the core Node suite on
    supported platforms and trigger Python tests when Python code changes.
-   Check whether overlapping CI workflows are necessary before expanding them.
+   Keep the Ubuntu `npm audit` job for lockfile dependency checks. Check whether
+   overlapping CI workflows are necessary before expanding them.
 4. **PowerShell verification:** declare supported versions per script, parse
    and test on Windows PowerShell 5.1 and/or PowerShell 7 where intended, and
    safely test system-changing modes with mocks or disposable hosts.

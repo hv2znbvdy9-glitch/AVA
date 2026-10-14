@@ -41,11 +41,13 @@ have reviewed.
 
 ### CI and dependencies
 
-The Node package declares no runtime dependencies. CI workflows grant
-`contents: read` to several jobs, but workflow permissions and third-party
-action versions are not uniform across every workflow. Review each workflow
-before running or expanding it. The repository's existing Node CI does not
-establish a coverage percentage or a complete security scan.
+The Node package declares no runtime dependencies. The main Node CI now runs
+`npm audit --audit-level=moderate` on its Ubuntu matrix job. This checks the
+lockfile's npm dependency tree (currently empty); it is not source-code analysis
+or a complete security scan. CI workflows grant `contents: read` to several
+jobs, but workflow permissions and third-party action versions are not uniform
+across every workflow. Review each workflow before running or expanding it.
+The repository does not establish a test-coverage percentage.
 
 ## Recommended next steps
 
@@ -57,8 +59,9 @@ establish a coverage percentage or a complete security scan.
 3. Treat policy decisions as review signals, not authorization decisions.
 4. Test each administrative PowerShell `Apply`/rollback path in a disposable
    Windows environment before using it on a host with valuable state.
-5. Pin and review workflow actions consistently; add security automation only
-   with a defined scope and expected maintenance.
+5. Keep the dependency audit in CI and pin/review workflow actions
+   consistently; add source-code security automation only with a defined scope
+   and expected maintenance.
 
 ## Limitations
 
