@@ -63,9 +63,9 @@ class AudioRadioPrototypeTests(unittest.TestCase):
 
     def test_rejects_invalid_channels_and_sample_rate(self):
         with self.assertRaises(AudioInputError):
-            radio_filter_pcm16(b"\\x00\\x00", channels=3, sample_rate=16000)
+            radio_filter_pcm16(b"\x00\x00", channels=3, sample_rate=16000)
         with self.assertRaises(AudioInputError):
-            radio_filter_pcm16(b"\\x00\\x00", channels=1, sample_rate=1000)
+            radio_filter_pcm16(b"\x00\x00", channels=1, sample_rate=1000)
 
 
 if __name__ == "__main__":
