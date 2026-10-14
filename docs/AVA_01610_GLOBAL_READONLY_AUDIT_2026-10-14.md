@@ -159,3 +159,13 @@ Eine spätere Abfrage der neu gestarteten Versuche ergab:
 - `AVA-007` Run `37056290532`, Attempt 40: zum letzten Statusabruf noch `in_progress`; alle dort bereits abgeschlossenen Windows-/macOS-Matrixjobs, Lint und Lockfile-Check waren erfolgreich, während Linux-Matrixjobs und der Install-ohne-Lockfile-Job noch liefen. Eine endgültige Schlussfolgerung zu diesem Versuch ist daher noch nicht möglich.
 
 Es wurden keine weiteren Retry-Aktionen ausgeführt. Das reproduzierte 69-007/AVA-Fehlerbild benötigt einen Quellcode-Fix, bevor erneute Wiederholungen aussagekräftig werden.
+
+
+### Status-Snapshot, 2026-10-14 14:23 UTC
+
+Letzte Metadatenabfrage:
+- AVA-007 Run `37056290532`, Attempt 40: `in_progress`, Schlussfolgerung offen.
+- 69-007/AVA Tests Run `37837416840`, Attempt 7: `in_progress`, einzelne Matrixjobs bereits fehlgeschlagen, Ergebnisstatus noch offen.
+- 69-007/AVA Python Smoke CI Run `37837416846`, Attempt 7: `completed / failure`; der bestätigte `threat_log`-Importfehler blieb bestehen.
+
+Diese Statusangaben sind Momentaufnahmen und müssen vor einer späteren Freigabe erneut direkt bei GitHub überprüft werden.
