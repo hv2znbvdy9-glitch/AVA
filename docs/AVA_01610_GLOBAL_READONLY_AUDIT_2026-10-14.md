@@ -124,3 +124,28 @@ Die Job-Listen und dekodierten Logs der bereits vorhandenen Fehlerläufe wurden 
 - **Danny:** Run [38083813956](https://github.com/hv2znbvdy9-glitch/Danny/actions/runs/38083813956) ist ein fehlgeschlagener Copilot-Agent-Job und kein regulärer Produkt-Testlauf. Der sichtbare `Run All Safe Checks` [31666658583](https://github.com/hv2znbvdy9-glitch/Danny/actions/runs/31666658583) war erfolgreich, ist aber ein älterer Auditlauf.
 
 **Nächste konkrete Fehlerbehebung:** In 69-007/AVA zuerst die vorgesehene Herkunft und API von `threat_log` klären, dann den Importvertrag mit einem gezielten Test absichern; anschließend mypy-Probleme in getrennten Modulen priorisieren. In AVA-007 zuerst den Diff der Reporter-Snapshots auf den Linux-Node-Matrixjobs untersuchen und nicht die absichtlich fehlschlagenden Test-Fixtures pauschal entfernen.
+
+
+## 8. Admin-Startdateien: Hashvermerk gefunden, Originaldateien nicht gefunden
+
+Die Werte für `AVA_ADMIN_CHECK.ps1` (`20FC0D4F5F0F22857F95DDF7DCAC4742474CFA90ABA369082CFED4C526289B78`) und `START_AVA_ADMIN_CHECK.cmd` (`31ED9855DF6B05D4BB4D4BA3FC51EA1185F8F210F055F5F9A2046FEA1877611E`) sind in `docs/AVA_FLASH_IMMUTABLE_RULE.md` als Referenzwerte dokumentiert. `SAFE_START_FINAL.md` erklärt außerdem, dass dies getrennte Dateien sein müssen und Hash-Prüfung vor Ausführung kommt.
+
+Die eigentlichen Dateien mit diesen Namen wurden in den sechs abgeglichenen Standardbranch-Bäumen und der GitHub-Dateisuche nicht als Quell-Dateien gefunden. Daher ließ sich keine unabhängige SHA-256-Übereinstimmung mit einem tatsächlichen Skriptinhalt herstellen. Der dokumentierte Hash ist ein Sollwert, keine Bestätigung des derzeitigen Datei-Inhalts.
+
+**Entscheidung:** nicht ausführen, solange Originaldateien nicht vorhanden, lesbar und hash-verifiziert sind. Auf einem Windows-Laptop ist als nächster Schritt ausschließlich die lokale Hash-Prüfung mit `Get-FileHash` und die textuelle Sichtprüfung vorgesehen; kein `Start-Process`, keine Elevation und kein Autostart.
+
+## 9. Tatsächlich neu gestartete GitHub-Jobversuche
+
+Am 2026-10-14 wurden ausschließlich die fehlgeschlagenen Jobs in drei vorhandenen Testläufen erneut angefordert (keine neuen Workflow-Dispatches und keine Deployments):
+
+| Repository | Run | neuer Versuch bei letzter Statusabfrage | Zustand der letzten Abfrage |
+|---|---:|---:|---|
+| [AVA-007](https://github.com/hv2znbvdy9-glitch/AVA-007/actions/runs/37056290532) | `37056290532` | 40 | `in_progress` |
+| [69-007/AVA Tests](https://github.com/69-007/AVA/actions/runs/37837416840) | `37837416840` | 7 | `queued` |
+| [69-007/AVA Python Smoke CI](https://github.com/69-007/AVA/actions/runs/37837416846) | `37837416846` | 7 | `queued` |
+
+Die Versuche laufen auf den bestehenden Commit-SHAs `6d293b38d1aaea9924b3bc8326f85388f362747e` (AVA-007) und `1f6a924f661b37e639843b4860e06d219b73208f` (69-007/AVA). Die erneute Anforderung bestätigt nicht, dass die Tests bestanden haben; diese Runs benötigen ein späteres Ergebnis, das hier zum Prüfzeitpunkt noch nicht vorlag.
+
+## 10. Ausführungsgrenze
+
+Die verbundene GitHub-Schnittstelle stellt für diese Sitzung keine neue `workflow_dispatch`-Aktion bereit. Daher wurden keine neuen Workflows in allen sechs Repositories pauschal ausgelöst; nur die drei vorhandenen fehlgeschlagenen Testläufe konnten über die verfügbare Retry-Aktion neu gestartet werden. Für `DE.VI.TO` ist im Standardbranch kein Workflow vorhanden. Auf realen Windows-Laptops wurde nichts gestartet und kein privilegiertes Skript ausgeführt. GitHub-Dateizugriff ist kein Fernzugriff auf lokale Geräte.
