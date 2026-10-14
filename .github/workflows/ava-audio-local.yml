@@ -1,0 +1,33 @@
+name: AVA Audio Local Prototype
+
+on:
+  push:
+    paths:
+      - "experiments/audio_local/**"
+      - ".github/workflows/ava-audio-local.yml"
+  pull_request:
+    paths:
+      - "experiments/audio_local/**"
+      - ".github/workflows/ava-audio-local.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-audio-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline audio tests
+        run: python -m unittest discover -s experiments/audio_local -p 'test_*.py' -v
