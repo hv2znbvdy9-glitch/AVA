@@ -1,0 +1,31 @@
+name: AVO Scale Lab (bounded model)
+
+on:
+  push:
+    paths:
+      - "experiments/scale_lab/**"
+      - ".github/workflows/avo-scale-lab.yml"
+  pull_request:
+    paths:
+      - "experiments/scale_lab/**"
+      - ".github/workflows/avo-scale-lab.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-model-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run unit tests
+        run: python -m unittest discover -s experiments/scale_lab -p 'test_*.py' -v
+      - name: Emit bounded aggregate estimate
+        run: python experiments/scale_lab/node_simulator.py
