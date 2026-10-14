@@ -111,3 +111,16 @@ Statuswerte hier sind Metadaten der jeweiligen Run-Seite; ein grüner Run ist nu
 - Wo Datei-SHAs genannt werden, sind es **Git-Blob-SHAs** aus der Contents-API, nicht separat berechnete SHA-256-Prüfsummen.
 - Keine reale Maschine wurde abgefragt oder verändert; keine Firewall-Regel, Aufgabe oder Sicherheitssoftware wurde gestartet/angepasst.
 - Die Audit-Dokumentation und der Monitor-Fix werden auf einem separaten Branch vorgeschlagen. Ein PR wird nicht automatisch mit `main` zusammengeführt.
+
+
+## 7. Nachträgliche Prüfung der fehlgeschlagenen Jobs
+
+Die Job-Listen und dekodierten Logs der bereits vorhandenen Fehlerläufe wurden nach dem ersten Bericht ergänzend gelesen:
+
+- **AVA-007, Run [37056290532](https://github.com/hv2znbvdy9-glitch/AVA-007/actions/runs/37056290532):** fehlgeschlagen waren unter anderem Linux-Matrixjobs für Node 20.19, 22.20, 24.12 und 25 sowie der Job „Install dependencies without using a lockfile“; mehrere Windows-/macOS-Matrixjobs waren erfolgreich. In den Linux-Logs sind Snapshot-Abweichungen bei `test-tap/reporters/default.failfast2.v20.log` und `default.edgecases.v20.log` sichtbar; darunter weichen erfasste Terminalausgaben/Fehlermeldungen von den erwarteten Report-Fixtures ab. Dies grenzt die nächste Diagnose auf Report-/Snapshot-Kompatibilität ein, beweist aber noch nicht die endgültige Ursache. Es wurde kein Retry ausgelöst.
+- **69-007/AVA, Tests-Run [37837416840](https://github.com/69-007/AVA/actions/runs/37837416840):** die Python-Matrixjobs 3.8, 3.9, 3.10, 3.11 und 3.12 scheiterten. Die Logs belegen einen gemeinsamen Test-Collection-Fehler: `tests/test_wellbeing.py` versucht `threat_log` aus `ava.security` zu importieren; das Symbol kann nicht importiert werden. In derselben Pipeline meldet mypy 146 Fehler über 37 Dateien. Der fehlende `coverage.xml`-Report ist Folge des abgebrochenen pytest-Laufs, nicht automatisch ein eigener Root Cause.
+- **69-007/AVA, Python Smoke CI [37837416846](https://github.com/69-007/AVA/actions/runs/37837416846):** auch hier scheitern die Python-Matrixjobs an der Test-Collection mit demselben `threat_log`-Importfehler.
+- **DEVITO, Run [38458673749](https://github.com/hv2znbvdy9-glitch/DEVITO/actions/runs/38458673749):** die beiden ausgewiesenen fokussierten Lindblad-Tests auf Python 3.10 und 3.12 sind erfolgreich. Das bestätigt nur diesen fokussierten Experimentpfad, nicht den gesamten DEVITO-Testbestand.
+- **Danny:** Run [38083813956](https://github.com/hv2znbvdy9-glitch/Danny/actions/runs/38083813956) ist ein fehlgeschlagener Copilot-Agent-Job und kein regulärer Produkt-Testlauf. Der sichtbare `Run All Safe Checks` [31666658583](https://github.com/hv2znbvdy9-glitch/Danny/actions/runs/31666658583) war erfolgreich, ist aber ein älterer Auditlauf.
+
+**Nächste konkrete Fehlerbehebung:** In 69-007/AVA zuerst die vorgesehene Herkunft und API von `threat_log` klären, dann den Importvertrag mit einem gezielten Test absichern; anschließend mypy-Probleme in getrennten Modulen priorisieren. In AVA-007 zuerst den Diff der Reporter-Snapshots auf den Linux-Node-Matrixjobs untersuchen und nicht die absichtlich fehlschlagenden Test-Fixtures pauschal entfernen.
