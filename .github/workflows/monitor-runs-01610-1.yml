@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '* * * * *'  # Every minute
 
+permissions:
+  actions: read
+  issues: write
+
 jobs:
   monitor:
     runs-on: ubuntu-latest
