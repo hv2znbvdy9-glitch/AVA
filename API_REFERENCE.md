@@ -24,7 +24,7 @@ must be an array for the multi-command functions. `options` supports:
 |---|---|---|---|
 | `silent` | boolean | `false` | Suppress captured output from being written to the parent process streams. |
 | `cwd` | string | `process.cwd()` | Working directory for the child process. |
-| `timeout` | positive integer (milliseconds) | unset | Terminate a command after the given duration. Unset preserves the existing unbounded behavior. |
+| `timeout` | positive safe integer (milliseconds) | unset | Terminate a command after the given duration; timed-out commands return exit code `124`. Unset preserves unbounded execution. |
 
 Synchronous functions return `{stdout, stderr, exitCode}`. Asynchronous
 functions resolve to the same result shape; `runAllParallel` preserves input

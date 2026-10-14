@@ -89,10 +89,11 @@ console.log(Math.max(...trace.map((sample) => sample.voltage)));
 
 ### Options
 
-| Option   | Type    | Default         | Description                      |
-|----------|---------|-----------------|----------------------------------|
-| `silent` | boolean | `false`         | Suppress stdout output           |
-| `cwd`    | string  | `process.cwd()` | Working directory for the command |
+| Option    | Type              | Default          | Description                                  |
+|-----------|-------------------|------------------|----------------------------------------------|
+| `silent`  | boolean           | `false`          | Suppress output written to parent streams   |
+| `cwd`     | string            | `process.cwd()`  | Working directory for the command            |
+| `timeout` | positive integer  | unset            | Optional command timeout in milliseconds     |
 
 ## Testing
 
