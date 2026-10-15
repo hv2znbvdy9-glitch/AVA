@@ -1,11 +1,10 @@
-import importlib.util
 import pathlib
+import sys
 import unittest
 
-MODULE_PATH = pathlib.Path(__file__).resolve().parents[1] / "node_simulator.py"
-SPEC = importlib.util.spec_from_file_location("node_simulator", MODULE_PATH)
-module = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(module)
+MODULE_DIR = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(MODULE_DIR))
+import node_simulator as module
 
 
 class ScaleEstimatorTests(unittest.TestCase):
