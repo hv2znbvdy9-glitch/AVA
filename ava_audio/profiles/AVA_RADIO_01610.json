@@ -1,0 +1,21 @@
+{
+  "name": "AVA_RADIO_01610",
+  "version": "0.1.0",
+  "style": "original_futuristic_synthetic_radio",
+  "effects": {
+    "pitch_shift": 3,
+    "echo": true,
+    "radio_filter": true,
+    "glitch": true,
+    "distortion": 0.15,
+    "echo_delay_seconds": 0.085,
+    "echo_gain": 0.22,
+    "glitch_every_seconds": 1.7,
+    "glitch_burst_seconds": 0.015
+  },
+  "privacy": {
+    "microphone_capture": false,
+    "network_upload": false,
+    "automatic_installation": false
+  }
+}
