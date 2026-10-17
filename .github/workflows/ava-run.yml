@@ -32,6 +32,9 @@ jobs:
       - name: Run AVA Tests
         run: npm test
 
+      - name: Run 690M logical-node scale model
+        run: node src/scale-lab.js --nodes 690000000 --sample-size 10000 --seed 1610
+
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on Linux - SUCCESS'"
 
@@ -54,8 +57,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run AVA Tests
-        run: npm test
+      - name: Run Windows AVA experiment wrapper
+        shell: pwsh
+        run: ./scripts/AVA_01610_RUN_EXPERIMENTS.ps1 -EvidencePath "$env:RUNNER_TEMP/AVA_01610_EXPERIMENT_LATEST.json"
 
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on Windows - SUCCESS'"
@@ -81,6 +85,9 @@ jobs:
 
       - name: Run AVA Tests
         run: npm test
+
+      - name: Run 690M logical-node scale model
+        run: node src/scale-lab.js --nodes 690000000 --sample-size 10000 --seed 1610
 
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on macOS - SUCCESS'"
