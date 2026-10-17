@@ -32,6 +32,9 @@ jobs:
       - name: Run AVA Tests
         run: npm test
 
+      - name: Run 690M logical-node scale model
+        run: node src/scale-lab.js --nodes 690000000 --sample-size 10000 --seed 1610
+
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on Linux - SUCCESS'"
 
@@ -57,6 +60,9 @@ jobs:
       - name: Run AVA Tests
         run: npm test
 
+      - name: Run 690M logical-node scale model
+        run: node src/scale-lab.js --nodes 690000000 --sample-size 10000 --seed 1610
+
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on Windows - SUCCESS'"
 
@@ -81,6 +87,9 @@ jobs:
 
       - name: Run AVA Tests
         run: npm test
+
+      - name: Run 690M logical-node scale model
+        run: node src/scale-lab.js --nodes 690000000 --sample-size 10000 --seed 1610
 
       - name: Run AVA CLI
         run: npx ava "echo 'AVA running on macOS - SUCCESS'"
