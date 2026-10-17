@@ -97,7 +97,7 @@ try {
     [System.IO.File]::WriteAllText(
         $FullEvidencePath,
         $EvidenceJson + [Environment]::NewLine,
-        (New-Object System.Text.UTF8Encoding($false))
+        [System.Text.UTF8Encoding]::new($false)
     )
 
     Write-Host ("Evidence JSON: " + $FullEvidencePath)
