@@ -121,6 +121,7 @@ accidentally resolving an unrelated npm package with the common name `ava`.
   a creative radio-style profile; it does not capture or play audio.
 
 - [AVA / AVO 01610 Scale Lab](docs/AVA-01610-scale-lab.md) - bounded, reproducible estimates for up to 690 million logical nodes; no infrastructure is created.
+- [AVA / AVO 01610 Experiment Runbook](docs/AVA_01610_EXPERIMENT_RUNBOOK.md) - one-command Windows validation, the bounded scale model, and evidence boundaries.
 
 ## Security reference examples
 
