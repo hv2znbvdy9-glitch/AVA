@@ -21,7 +21,16 @@ $Root = [System.IO.Path]::GetFullPath($PackagePath)
 if (-not [System.IO.Directory]::Exists($Root)) { throw 'PackagePath does not exist. No files were changed.' }
 $Items = foreach ($launcher in $ExpectedLaunchers) {
     $candidate = Join-Path $Root $launcher.name
+    $relativePath = $launcher.name
     $present = [System.IO.File]::Exists($candidate)
+    if (-not $present) {
+        $scriptCandidate = Join-Path (Join-Path $Root 'scripts') $launcher.name
+        if ([System.IO.File]::Exists($scriptCandidate)) {
+            $candidate = $scriptCandidate
+            $relativePath = Join-Path 'scripts' $launcher.name
+            $present = $true
+        }
+    }
     $hash = $null
     $hashStatus = 'NOT_AVAILABLE'
     if ($present) {
@@ -32,6 +41,7 @@ $Items = foreach ($launcher in $ExpectedLaunchers) {
     }
     [ordered]@{
         file = $launcher.name
+        relativePath = $(if ($present) { $relativePath } else { $null })
         purpose = $launcher.purpose
         status = $(if ($present) { 'PRESENT' } else { 'MISSING' })
         sha256 = $hash
