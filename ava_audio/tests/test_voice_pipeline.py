@@ -62,6 +62,10 @@ class VoicePipelineTests(unittest.TestCase):
             self.assertEqual(report["network_upload"], "disabled")
             with self.assertRaises(ValueError):
                 process_wav_file(source, source, VoiceConfig(pitch_shift=0))
+            target.write_bytes(b"existing output must survive")
+            with self.assertRaises(FileExistsError):
+                process_wav_file(source, target, VoiceConfig(pitch_shift=0))
+            self.assertEqual(target.read_bytes(), b"existing output must survive")
 
 
 if __name__ == "__main__":
