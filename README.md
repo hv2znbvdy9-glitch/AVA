@@ -122,6 +122,7 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 
 - [AVA / AVO 01610 Scale Lab](docs/AVA-01610-scale-lab.md) - bounded, reproducible estimates for up to 690 million logical nodes; no infrastructure is created.
 - [AVA / AVO 01610 Experiment Runbook](docs/AVA_01610_EXPERIMENT_RUNBOOK.md) - one-command Windows validation, the bounded scale model, and evidence boundaries.
+- [AVA 01610 Safe Start Plan](docs/AVA_01610_SAFE_STARTPLAN.md) - read-only launcher inventory, SHA-256 evidence, privacy limits, and explicit AutoDefense guardrails.
 
 ## Security reference examples
 
