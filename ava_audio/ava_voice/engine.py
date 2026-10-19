@@ -160,6 +160,8 @@ def process_wav_file(input_path: str | Path, output_path: str | Path, config: Vo
     target = Path(output_path).expanduser().resolve()
     if source == target:
         raise ValueError("output_path must differ from input_path; source is never overwritten")
+    if target.exists():
+        raise FileExistsError(f"output WAV already exists; refusing to overwrite: {target}")
     if not source.is_file():
         raise FileNotFoundError(f"input WAV not found: {source}")
     rate, samples = _read_mono_pcm16(source)
