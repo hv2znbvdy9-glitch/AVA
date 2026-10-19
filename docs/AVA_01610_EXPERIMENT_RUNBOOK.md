@@ -35,6 +35,17 @@ The existing .github/workflows/ava-run.yml and .github/workflows/ci.yml are conf
 
 The read-only monitor workflow is adjusted to use a five-minute schedule, read only recent workflow-run metadata, and write a job summary rather than comments to an issue. A scheduled workflow uses this new schedule only after the change is merged into the default branch.
 
+
+## Safe-start plan integration
+
+The supplied AVA ALL STARTPLAN is integrated as a separate read-only inventory script: scripts/AVA_01610_SAFE_STARTPLAN.ps1. It checks the six launcher names from the plan, computes SHA-256 hashes for those present, and writes a privacy-minimized JSON report. Run it against the folder where the package was extracted:
+
+    .\scripts\AVA_01610_SAFE_STARTPLAN.ps1 -PackagePath "C:\path\to\extracted\AVA_SAFE_START"
+
+This inventory does not launch any file. It does not change Windows settings or enable AutoDefense. START_03 remains a manual, risk-reviewed choice because it may add firewall block rules. Package archive hashes in the source plan must not be treated as hashes of individual launcher files.
+
+The new Node test test/ava-safe-startplan.test.js is included in npm test and checks that the inventory script retains its declared read-only safety boundaries. That static test is not a substitute for running the PowerShell script on Windows.
+
 ## Evidence labels
 
 - **Tested:** only after a runner actually reports a successful result.
