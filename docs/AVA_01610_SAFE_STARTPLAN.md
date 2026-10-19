@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Turn the supplied AVA ALL STARTPLAN — SAFE / DEFENSIVE into a repeatable inventory step. The script checks only whether six named launcher files exist in a package folder and computes SHA-256 hashes for files that are present.
+Turn the supplied AVA ALL STARTPLAN — SAFE / DEFENSIVE into a repeatable inventory step. The script checks only whether six named launcher files exist in the package root or its scripts subfolder and computes SHA-256 hashes for files that are present.
 
 ## Run on Windows
 
@@ -27,7 +27,7 @@ The default report is written to the system temporary directory as AVA_01610_SAF
 - START_03_LIVE_AUTODEFENSE_MIT_BESTAETIGUNG_ADMIN.cmd
 - START_04_ROLLBACK_BLOCKS_ADMIN.cmd
 
-The JSON report contains presence/missing status, SHA-256 for each present launcher, timestamps, and safety boundaries. It deliberately excludes the absolute package path and does not include Windows username, computer name, IP addresses, or MAC/BSSID identifiers.
+The JSON report contains presence/missing status, a package-relative location (root or scripts subfolder), SHA-256 for each present launcher, timestamps, and safety boundaries. It deliberately excludes the absolute package path and does not include Windows username, computer name, IP addresses, or MAC/BSSID identifiers.
 
 Exit codes: 0 means all six expected names were inventoried; 2 means one or more were missing; other PowerShell errors mean the inventory could not be completed. Missing files are not proof of compromise.
 
