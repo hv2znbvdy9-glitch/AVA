@@ -147,11 +147,14 @@ def _write_mono_pcm16(path: Path, sample_rate: int, samples: Iterable[float]) ->
         clipped = max(-1.0, min(1.0, float(x)))
         integer = max(-32768, min(32767, round(clipped * 32767.0)))
         raw.extend(struct.pack("<h", integer))
-    with wave.open(str(path), "wb") as dst:
-        dst.setnchannels(1)
-        dst.setsampwidth(2)
-        dst.setframerate(sample_rate)
-        dst.writeframes(bytes(raw))
+    # Exclusive creation ("xb") prevents a race from truncating a file that
+    # appears after process_wav_file checks target.exists().
+    with path.open("xb") as raw_file:
+        with wave.open(raw_file, "wb") as dst:
+            dst.setnchannels(1)
+            dst.setsampwidth(2)
+            dst.setframerate(sample_rate)
+            dst.writeframes(bytes(raw))
 
 
 def process_wav_file(input_path: str | Path, output_path: str | Path, config: VoiceConfig | None = None) -> dict[str, int | str]:
