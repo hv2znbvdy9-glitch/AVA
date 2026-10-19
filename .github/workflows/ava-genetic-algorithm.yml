@@ -1,0 +1,31 @@
+name: AVA genetic algorithm tests
+
+on:
+  pull_request:
+    paths:
+      - "ava/genetic_algorithm.py"
+      - "tests/test_ava_genetic_algorithm.py"
+      - "docs/AVA-01610-genetic-algorithm.md"
+      - ".github/workflows/ava-genetic-algorithm.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run focused unit tests
+        run: python -m unittest discover -s tests -p "test_ava_genetic_algorithm.py" -v
+      - name: Run deterministic sample and validate JSON
+        run: |
+          python -m ava.genetic_algorithm --seed 1610 --population-size 200 --elite-count 20 --mutation-rate 0.03 --max-generations 1000 > genetic-algorithm-report.json
+          python -c "import json; r=json.load(open('genetic-algorithm-report.json', encoding='utf-8')); assert r['mode'] == 'offline_simulation_only'; assert r['stop_reason'] in ('target_reached', 'max_generations'); assert len(r['history']) >= 1"
