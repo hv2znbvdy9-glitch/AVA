@@ -38,7 +38,7 @@ The read-only monitor workflow is adjusted to use a five-minute schedule, read o
 
 ## Safe-start plan integration
 
-The supplied AVA ALL STARTPLAN is integrated as a separate read-only inventory script: scripts/AVA_01610_SAFE_STARTPLAN.ps1. It checks the six launcher names from the plan, computes SHA-256 hashes for those present, and writes a privacy-minimized JSON report. Run it against the folder where the package was extracted:
+The supplied AVA ALL STARTPLAN is integrated as a separate read-only inventory script: scripts/AVA_01610_SAFE_STARTPLAN.ps1. It checks the six launcher names from the plan in the package root or its scripts subfolder, computes SHA-256 hashes for those present, and writes a privacy-minimized JSON report. Run it against the folder where the package was extracted:
 
     .\scripts\AVA_01610_SAFE_STARTPLAN.ps1 -PackagePath "C:\path\to\extracted\AVA_SAFE_START"
 
