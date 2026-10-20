@@ -1,4 +1,5 @@
 """Bounded tests for the reproducible AVA genetic-algorithm experiment."""
+import json
 import unittest
 
 from ava.genetic_algorithm import DEFAULT_TARGET, fitness, run_evolution
@@ -26,19 +27,28 @@ class GeneticAlgorithmTests(unittest.TestCase):
         self.assertEqual(report["stop_reason"], "max_generations")
         self.assertFalse(report["target_reached"])
 
-    def test_parameter_bounds(self):
-        for kwargs in (
+    def test_parameter_bounds_and_boolean_rejection(self):
+        invalid_parameters = (
             {"seed": -1},
+            {"seed": True},
             {"population_size": 1},
+            {"population_size": True},
             {"population_size": 10, "elite_count": 10},
             {"mutation_rate": 1.1},
+            {"mutation_rate": True},
             {"max_generations": -1},
-        ):
+            {"max_generations": True},
+        )
+        for kwargs in invalid_parameters:
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 run_evolution("ABC", **kwargs)
 
+    def test_target_must_be_printable_ascii(self):
+        for target in ("", "Grüße", "A\nB"):
+            with self.subTest(target=target), self.assertRaises(ValueError):
+                run_evolution(target)
+
     def test_default_target_is_declared_and_result_is_serializable(self):
-        import json
         report = run_evolution(seed=1610, population_size=100, elite_count=10, max_generations=10)
         self.assertEqual(report["target"], DEFAULT_TARGET)
         self.assertIn(report["stop_reason"], {"target_reached", "max_generations"})
