@@ -68,5 +68,30 @@ class VoicePipelineTests(unittest.TestCase):
             self.assertEqual(target.read_bytes(), b"existing output must survive")
 
 
+    def test_rejects_unsupported_wav_formats(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            stereo = root / "stereo.wav"
+            with wave.open(str(stereo), "wb") as wav:
+                wav.setnchannels(2)
+                wav.setsampwidth(2)
+                wav.setframerate(16000)
+                wav.writeframes(struct.pack("<hhhh", 100, -100, 200, -200))
+
+            eight_bit = root / "eight_bit.wav"
+            with wave.open(str(eight_bit), "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(1)
+                wav.setframerate(16000)
+                wav.writeframes(bytes([0, 64, 128, 255]))
+
+            for source in (stereo, eight_bit):
+                output = root / f"{source.stem}_processed.wav"
+                with self.subTest(source=source.name):
+                    with self.assertRaises(ValueError):
+                        process_wav_file(source, output, VoiceConfig(pitch_shift=0))
+                    self.assertFalse(output.exists())
+
+
 if __name__ == "__main__":
     unittest.main()
