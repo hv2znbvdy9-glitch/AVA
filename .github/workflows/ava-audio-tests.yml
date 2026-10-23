@@ -1,0 +1,27 @@
+name: AVA Audio Prototype Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "ava_audio/**"
+      - ".github/workflows/ava-audio-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  offline-audio-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline AVA_AUDIO tests
+        env:
+          PYTHONPATH: ava_audio
+        run: python -m unittest discover -s ava_audio/tests -v
