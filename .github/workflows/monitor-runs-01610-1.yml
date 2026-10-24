@@ -13,6 +13,10 @@ concurrency:
   group: ava-01610-read-only-monitor
   cancel-in-progress: true
 
+permissions:
+  actions: read
+  issues: write
+
 jobs:
   monitor:
     name: Summarize recent workflow runs (read-only)
