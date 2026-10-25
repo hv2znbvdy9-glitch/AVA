@@ -27,7 +27,9 @@ class ChemistryKnowledgeTests(unittest.TestCase):
 
     def test_cu2_record_uses_canonical_evidence_schema(self):
         cu = next(item for item in self.data["cation_tests"] if item["ion"] == "Cu2+")
+        self.assertEqual(cu["module"], "AVA-01610-CHEMISTRY")
         self.assertEqual(cu["category"], "qualitative_cation_analysis")
+        self.assertEqual(cu["observation"], "blue_precipitate")
         self.assertEqual(cu["reaction"], "Cu2+ + 2 OH- -> Cu(OH)2(s)")
         self.assertEqual(cu["expected_observation"], "blue_precipitate")
         self.assertEqual(cu["confidence"], "reference_only")
@@ -42,6 +44,12 @@ class ChemistryKnowledgeTests(unittest.TestCase):
         cu = next(item for item in bad["cation_tests"] if item["ion"] == "Cu2+")
         cu["execution_claimed"] = True
         self.assertTrue(any("execution_claimed must be false" in error for error in validate_knowledge(bad)))
+
+    def test_validator_detects_duplicate_cu2_entries(self):
+        bad = copy.deepcopy(self.data)
+        cu = next(item for item in bad["cation_tests"] if item["ion"] == "Cu2+")
+        bad["cation_tests"].append(copy.deepcopy(cu))
+        self.assertTrue(any("duplicate cation test: Cu2+" in error for error in validate_knowledge(bad)))
 
     def test_validator_detects_duplicate_symbols(self):
         bad = {
