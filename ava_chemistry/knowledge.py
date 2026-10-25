@@ -71,15 +71,19 @@ def validate_knowledge(data: dict[str, Any]) -> list[str]:
         # Preserve the explicit Cu2+ evidence/experiment/safety contract.
         if ion == "Cu2+":
             required = (
-                "category", "reaction", "expected_observation", "confidence",
+                "module", "category", "reaction", "expected_observation", "confidence",
                 "evidence_status", "experimental_status", "safety_status",
                 "safety_review_required", "execution_claimed",
             )
             for key in required:
                 if key not in item:
                     errors.append(f"cation_tests[{index}] missing {key}")
+            if item.get("module") != "AVA-01610-CHEMISTRY":
+                errors.append("Cu2+ module must be AVA-01610-CHEMISTRY")
             if item.get("category") != "qualitative_cation_analysis":
                 errors.append("Cu2+ category must be qualitative_cation_analysis")
+            if item.get("observation") != "blue_precipitate":
+                errors.append("Cu2+ observation must be blue_precipitate")
             if item.get("reaction") != "Cu2+ + 2 OH- -> Cu(OH)2(s)":
                 errors.append("Cu2+ reaction does not match canonical equation")
             if item.get("expected_observation") != "blue_precipitate":
