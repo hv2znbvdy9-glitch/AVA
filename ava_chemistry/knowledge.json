@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.0",
+  "module": "AVA-01610-CHEMISTRY",
+  "source_note": "Structured from the two user-provided educational images. Visual observations are reference material, not results of experiments performed by AVA.",
+  "s_block": [
+    {
+      "atomic_number": 1,
+      "symbol": "H",
+      "name": "Hydrogen",
+      "group": 1,
+      "class": "group-1-position; not an alkali metal"
+    },
+    {
+      "atomic_number": 3,
+      "symbol": "Li",
+      "name": "Lithium",
+      "group": 1,
+      "class": "alkali metal"
+    },
+    {
+      "atomic_number": 11,
+      "symbol": "Na",
+      "name": "Sodium",
+      "group": 1,
+      "class": "alkali metal"
+    },
+    {
+      "atomic_number": 19,
+      "symbol": "K",
+      "name": "Potassium",
+      "group": 1,
+      "class": "alkali metal"
+    },
+    {
+      "atomic_number": 37,
+      "symbol": "Rb",
+      "name": "Rubidium",
+      "group": 1,
+      "class": "alkali metal"
+    },
+    {
+      "atomic_number": 55,
+      "symbol": "Cs",
+      "name": "Caesium",
+      "group": 1,
+      "class": "alkali metal"
+    },
+    {
+      "atomic_number": 87,
+      "symbol": "Fr",
+      "name": "Francium",
+      "group": 1,
+      "class": "radioactive alkali metal"
+    },
+    {
+      "atomic_number": 4,
+      "symbol": "Be",
+      "name": "Beryllium",
+      "group": 2,
+      "class": "alkaline earth metal"
+    },
+    {
+      "atomic_number": 12,
+      "symbol": "Mg",
+      "name": "Magnesium",
+      "group": 2,
+      "class": "alkaline earth metal"
+    },
+    {
+      "atomic_number": 20,
+      "symbol": "Ca",
+      "name": "Calcium",
+      "group": 2,
+      "class": "alkaline earth metal"
+    },
+    {
+      "atomic_number": 38,
+      "symbol": "Sr",
+      "name": "Strontium",
+      "group": 2,
+      "class": "alkaline earth metal"
+    },
+    {
+      "atomic_number": 56,
+      "symbol": "Ba",
+      "name": "Barium",
+      "group": 2,
+      "class": "alkaline earth metal"
+    },
+    {
+      "atomic_number": 88,
+      "symbol": "Ra",
+      "name": "Radium",
+      "group": 2,
+      "class": "radioactive alkaline earth metal"
+    }
+  ],
+  "cation_tests": [
+    {
+      "ion": "Cu2+",
+      "reagent": "NaOH",
+      "observation": "blue precipitate",
+      "product": "Cu(OH)2",
+      "source_label": "Blue ppt.",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Fe2+",
+      "reagent": "NaOH",
+      "observation": "green precipitate",
+      "product": "Fe(OH)2",
+      "source_label": "Green ppt.",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Fe3+",
+      "reagent": "NaOH",
+      "observation": "brown precipitate",
+      "product": "Fe(OH)3",
+      "source_label": "Brown ppt.",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Al3+",
+      "reagent": "NaOH",
+      "observation": "white precipitate; dissolves in excess",
+      "product": "Al(OH)3",
+      "source_label": "White ppt.; dissolves in excess",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Zn2+",
+      "reagent": "NaOH",
+      "observation": "white precipitate; dissolves in excess",
+      "product": "Zn(OH)2",
+      "source_label": "White ppt.; dissolves in excess",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Pb2+",
+      "reagent": "KI",
+      "observation": "yellow precipitate",
+      "product": "PbI2",
+      "source_label": "Yellow ppt.",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Ag+",
+      "reagent": "chloride (e.g. HCl)",
+      "observation": "white precipitate; soluble in NH3 according to image",
+      "product": "AgCl",
+      "source_label": "White ppt.; dissolves in NH3",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Ba2+",
+      "reagent": "SO4^2-",
+      "observation": "white precipitate",
+      "product": "BaSO4",
+      "source_label": "White ppt.; insoluble",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Ca2+",
+      "reagent": "C2O4^2-",
+      "observation": "white precipitate",
+      "product": "CaC2O4",
+      "source_label": "White ppt.; insoluble",
+      "requires_confirmation": true
+    },
+    {
+      "ion": "Mg2+",
+      "reagent": "NaOH",
+      "observation": "white precipitate",
+      "product": "Mg(OH)2",
+      "source_label": "White ppt.; insoluble",
+      "requires_confirmation": true
+    }
+  ],
+  "safety": {
+    "general": "Educational reference only. Do not perform reactions based on this dataset alone; follow an approved lab procedure and local safety rules.",
+    "hazards": [
+      "NaOH is corrosive.",
+      "Lead compounds are toxic.",
+      "Barium salts require careful hazard assessment.",
+      "Silver salts and heavy-metal waste require appropriate handling and disposal.",
+      "Francium and radium are radioactive; do not attempt practical handling."
+    ],
+    "no_experiment_claim": true
+  }
+}
