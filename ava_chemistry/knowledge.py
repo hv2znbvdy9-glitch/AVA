@@ -19,7 +19,7 @@ def load_knowledge() -> dict[str, Any]:
 
 
 def validate_knowledge(data: dict[str, Any]) -> list[str]:
-    """Return structural/data-integrity errors; this does not validate lab results."""
+    """Validate reference structure and guard against unsupported execution claims."""
     errors: list[str] = []
     if data.get("schema_version") != "1.0":
         errors.append("schema_version must be '1.0'")
@@ -47,6 +47,7 @@ def validate_knowledge(data: dict[str, Any]) -> list[str]:
             seen_symbols.add(symbol)
         if group not in (1, 2):
             errors.append(f"s_block[{index}] group must be 1 or 2")
+
     tests = data.get("cation_tests")
     if not isinstance(tests, list):
         errors.append("cation_tests must be a list")
@@ -66,6 +67,36 @@ def validate_knowledge(data: dict[str, Any]) -> list[str]:
             seen_ions.add(ion)
         if item.get("requires_confirmation") is not True:
             errors.append(f"cation_tests[{index}] must require confirmation")
+
+        # Preserve the explicit Cu2+ evidence/experiment/safety contract.
+        if ion == "Cu2+":
+            required = (
+                "module", "category", "reaction", "expected_observation", "confidence",
+                "evidence_status", "experimental_status", "safety_status",
+                "safety_review_required", "execution_claimed",
+            )
+            for key in required:
+                if key not in item:
+                    errors.append(f"cation_tests[{index}] missing {key}")
+            if item.get("module") != "AVA-01610-CHEMISTRY":
+                errors.append("Cu2+ module must be AVA-01610-CHEMISTRY")
+            if item.get("category") != "qualitative_cation_analysis":
+                errors.append("Cu2+ category must be qualitative_cation_analysis")
+            if item.get("observation") != "blue_precipitate":
+                errors.append("Cu2+ observation must be blue_precipitate")
+            if item.get("reaction") != "Cu2+ + 2 OH- -> Cu(OH)2(s)":
+                errors.append("Cu2+ reaction does not match canonical equation")
+            if item.get("expected_observation") != "blue_precipitate":
+                errors.append("Cu2+ expected_observation must be blue_precipitate")
+            if item.get("confidence") != "reference_only" or item.get("evidence_status") != "reference_only":
+                errors.append("Cu2+ evidence must remain reference_only")
+            if item.get("experimental_status") != "not_confirmed":
+                errors.append("Cu2+ experimental_status must remain not_confirmed")
+            if item.get("safety_status") != "review_required" or item.get("safety_review_required") is not True:
+                errors.append("Cu2+ safety review must remain required")
+            if item.get("execution_claimed") is not False:
+                errors.append("Cu2+ execution_claimed must be false")
+
     if not isinstance(data.get("safety"), dict):
         errors.append("safety must be an object")
     elif data["safety"].get("no_experiment_claim") is not True:
