@@ -102,7 +102,16 @@
       "observation": "blue precipitate",
       "product": "Cu(OH)2",
       "source_label": "Blue ppt.",
-      "requires_confirmation": true
+      "requires_confirmation": true,
+      "category": "qualitative_cation_analysis",
+      "reaction": "Cu2+ + 2 OH- -> Cu(OH)2(s)",
+      "expected_observation": "blue_precipitate",
+      "confidence": "reference_only",
+      "evidence_status": "reference_only",
+      "experimental_status": "not_confirmed",
+      "safety_status": "review_required",
+      "safety_review_required": true,
+      "execution_claimed": false
     },
     {
       "ion": "Fe2+",
