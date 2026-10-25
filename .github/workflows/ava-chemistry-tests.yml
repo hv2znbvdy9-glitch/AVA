@@ -1,0 +1,30 @@
+name: AVA Chemistry Knowledge Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "ava_chemistry/**"
+      - ".github/workflows/ava-chemistry-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ava_chemistry/**"
+      - ".github/workflows/ava-chemistry-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-knowledge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run chemistry knowledge tests
+        run: python -m unittest discover -s ava_chemistry/tests -v
