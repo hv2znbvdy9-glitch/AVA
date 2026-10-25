@@ -99,7 +99,7 @@
     {
       "ion": "Cu2+",
       "reagent": "NaOH",
-      "observation": "blue precipitate",
+      "observation": "blue_precipitate",
       "product": "Cu(OH)2",
       "source_label": "Blue ppt.",
       "requires_confirmation": true,
@@ -111,7 +111,8 @@
       "experimental_status": "not_confirmed",
       "safety_status": "review_required",
       "safety_review_required": true,
-      "execution_claimed": false
+      "execution_claimed": false,
+      "module": "AVA-01610-CHEMISTRY"
     },
     {
       "ion": "Fe2+",
