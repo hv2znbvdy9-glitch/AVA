@@ -1,0 +1,41 @@
+name: AVA Secure gRPC C++ CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "examples/grpc-secure/**"
+      - ".github/workflows/grpc-secure-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install C++ gRPC dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential cmake ninja-build \
+            libgrpc++-dev libprotobuf-dev \
+            protobuf-compiler protobuf-compiler-grpc openssl
+
+      - name: Configure
+        run: |
+          cmake -S examples/grpc-secure \
+            -B build/grpc-secure \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build build/grpc-secure --parallel 3
+
+      - name: Run unit and mTLS smoke tests
+        run: ctest --test-dir build/grpc-secure --output-on-failure
