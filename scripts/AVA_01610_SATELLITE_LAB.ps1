@@ -25,20 +25,23 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
 	}
 	$OutputDirectory = Join-Path $DesktopPath 'AVA_01610_SATELLITE_LAB'
 }
-$OutputRoot = [System.IO.Path]::GetFullPath($OutputDirectory)
+# New run directory per invocation: the first evidence stays intact.
+$OutputBase = [System.IO.Path]::GetFullPath($OutputDirectory)
+$RunId = 'AVA01610_' + (Get-Date -Format 'yyyyMMdd_HHmmss_fffffff') + '_' + [guid]::NewGuid().ToString('N')
+$OutputRoot = Join-Path $OutputBase $RunId
 $LogDir = Join-Path $OutputRoot 'Logs'
 $ReportDir = Join-Path $OutputRoot 'Reports'
 
-function Ensure-Dir {
-	param([string]$Path)
-	if (-not (Test-Path -LiteralPath $Path)) {
-		New-Item -ItemType Directory -Force -Path $Path | Out-Null
-	}
-}
-
 function Ensure-AllDirs {
-	foreach ($d in @($OutputRoot, $LogDir, $ReportDir)) {
-		Ensure-Dir $d
+	if (-not (Test-Path -LiteralPath $OutputBase)) {
+		New-Item -ItemType Directory -Path $OutputBase -Force -ErrorAction Stop | Out-Null
+	}
+	if (Test-Path -LiteralPath $OutputRoot) {
+		throw 'STOP: report folder already exists; preserve the first snapshot.'
+	}
+	New-Item -ItemType Directory -Path $OutputRoot -ErrorAction Stop | Out-Null
+	foreach ($dir in @($LogDir, $ReportDir)) {
+		New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
 	}
 }
 
