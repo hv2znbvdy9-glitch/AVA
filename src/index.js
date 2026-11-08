@@ -11,7 +11,13 @@ const {
 	REPAIR_WINDOWS_SYSTEM_FILES_REFERENCES,
 } = require('./repair-windows-system-files');
 const {STATE_LABELS, clampScore, classifyState, calculateScore} = require('./state');
-const {neuronModelReport, neuronModelData, NEURON_MODEL_REPORT, NEURON_MODEL_REFERENCES} = require('./neuron-model');
+const {
+	neuronModelReport,
+	neuronModelData,
+	NEURON_MODEL_REPORT,
+	NEURON_MODEL_REFERENCES,
+	HAY_L5B_REFERENCE,
+} = require('./neuron-model');
 const {
 	avatar01610Report,
 	avatar01610Data,
@@ -26,6 +32,12 @@ const {
 	simulate: simulateNeuron,
 	steadyState: neuronSteadyState,
 } = require('./neuron/hodgkin-huxley');
+const {
+	axialCouplingCurrent,
+	cableEquationDerivative,
+	conductanceCurrent,
+	eulerStep,
+} = require('./neuron/cable');
 const {AVA_RADIO_PROFILE} = require('./voice/config');
 const {processAudio} = require('./voice/engine');
 const {MAX_TARGET_NODES, simulateScale} = require('./scale-lab');
@@ -54,6 +66,7 @@ module.exports = {
 	neuronModelData,
 	NEURON_MODEL_REPORT,
 	NEURON_MODEL_REFERENCES,
+	HAY_L5B_REFERENCE,
 	avatar01610Report,
 	avatar01610Data,
 	AVATAR_01610_REPORT,
@@ -64,6 +77,10 @@ module.exports = {
 	neuronRates,
 	simulateNeuron,
 	neuronSteadyState,
+	axialCouplingCurrent,
+	cableEquationDerivative,
+	conductanceCurrent,
+	eulerStep,
 	AVA_RADIO_PROFILE,
 	processAudio,
 	MAX_TARGET_NODES,
