@@ -43,6 +43,8 @@ Der aktuelle AVA-Prototyp enthält:
 
 - ein klassisches Einzelkompartiment-Hodgkin-Huxley-Modell;
 - Natrium-, Kalium- und Leckströme;
+- generische Hilfsfunktionen für Leitfähigkeitsströme, axiale Kopplungsströme, Kabelgleichungsableitungen und deterministische Euler-Schritte;
+- strukturierte Referenzmetadaten für Hay et al. (2011);
 - die spannungsabhängigen Torvariablen m, h und n;
 - numerisch stabile Behandlung der entfernbaren Singularitäten der Ratenfunktionen;
 - Prüfungen für endliche Werte, Zeitschritt, Leitfähigkeiten, Torbereiche und maximale Schrittzahl;
@@ -51,7 +53,8 @@ Der aktuelle AVA-Prototyp enthält:
 
 Nicht implementiert sind:
 
-- rekonstruierte Morphologie und axiale Kopplung mehrerer Kompartimente;
+- rekonstruierte Morphologie und die Hay-spezifische Kompartiment-Topologie und Kanalverteilungen;
+- die veröffentlichte Hay-Modelltopologie, dessen spezifische Kanalverteilungen und Mechanismen sowie eine NEURON-basierte Simulation;
 - Dendriten, Axoninitialsegment, Synapsen und Spines;
 - Calcium- oder NMDA-Spikes;
 - Plastizität, Stoffwechsel, Genexpression oder Glia;
@@ -78,7 +81,7 @@ node .\bin\cli.js --neuron-sim
 
 Die npm-Skripte sind gegenüber einem unqualifizierten npx-Aufruf vorzuziehen, weil der Paketname „ava“ auch von anderen npm-Projekten verwendet wird.
 
-Die Demonstration läuft 30 Millisekunden mit einem getesteten Zeitschritt von 0,01 Millisekunden. Der explizite Euler-Integrator ist bewusst einfach. Ein bestandener Regressionstest belegt interne Konsistenz, aber keine experimentelle Validierung.
+Die Demonstration läuft 30 Millisekunden mit einem getesteten Zeitschritt von 0,01 Millisekunden. Der explizite Euler-Integrator ist bewusst einfach. Generische Kabelgleichungsfunktionen stellen lediglich eine wiederverwendbare Rechenreferenz dar; sie bilden weder die vollständige Morphologie noch die Kanalkinetik des veröffentlichten Hay-L5b-Modells nach und sind keine NEURON-Simulation. Ein bestandener Regressionstest belegt interne Konsistenz, aber keine experimentelle Validierung.
 
 ## 6. Anforderungen an einen späteren Multi-Kompartiment-Ausbau
 
