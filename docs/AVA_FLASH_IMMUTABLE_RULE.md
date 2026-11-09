@@ -1,5 +1,20 @@
 # AVA Flash Immutable Rule ⚡️⚡️
 
+## Geltungsbereich und Umsetzungsstatus
+
+Diese Datei ist eine Richtlinie für die getrennte Aufbewahrung ursprünglicher
+Ereignisse. Das AVA-Repository enthält derzeit keinen allgemeinen Capture- oder
+Evidence-Store, der diese Vorgaben automatisch garantiert. Wer die Richtlinie
+umsetzt, muss die Speicherung, Zugriffsrechte, Backups und Wiederherstellung
+separat absichern. SHA-256 macht nachträgliche Änderungen erkennbar, verhindert
+sie aber nicht.
+
+Die Regel beschreibt Integritäts- und Auditierbarkeitsanforderungen, keine
+rechtliche Beweiskraft oder Garantie, dass ein Ereignis tatsächlich stattgefunden
+hat. Erfasste Metadaten müssen auf den erforderlichen Zweck beschränkt werden;
+keine Zugangsdaten oder unnötigen personenbezogenen Daten in Manifeste,
+Protokolle oder Berichte aufnehmen.
+
 ## Zweck
 
 Diese Richtlinie schützt Originalereignisse vor Überschreiben, Zusammenfallen oder nachträglichem Ersetzen. Sie gilt für lokale, defensive Beweissicherung auf eigenen oder ausdrücklich autorisierten Systemen.
