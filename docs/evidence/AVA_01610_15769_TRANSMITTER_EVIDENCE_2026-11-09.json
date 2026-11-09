@@ -1,0 +1,79 @@
+{
+  "record": "AVA_01610_15769_TRANSMITTER_EVIDENCE",
+  "version": 1,
+  "date": "2026-11-09",
+  "purpose": "historical transmitter and satellite terminal identification",
+  "safety": {
+    "operational_transmission": false,
+    "uplink_configuration": false,
+    "system_changes": false,
+    "personal_data_included": false
+  },
+  "candidates": [
+    {
+      "id": "nera_inmarsat_mini_m",
+      "label": "Nera WorldPhone / Inmarsat M-Mini-M",
+      "evidence": "confirmed_device_class",
+      "fit": "portable_satellite_communications",
+      "discriminator": "fold-out/flat antenna and phone controls",
+      "notes": [
+        "voice/fax/data documented",
+        "older Inmarsat-M suitcase-class terminals documented around 13 kg",
+        "Mini-M terminal documented around 2.3 kg"
+      ]
+    },
+    {
+      "id": "argos_ptt",
+      "label": "Argos Platform Transmitter Terminal",
+      "evidence": "confirmed_device_class",
+      "fit": "closed_telemetry_box",
+      "discriminator": "antenna plus sensor interfaces, no handset/keypad",
+      "notes": [
+        "transmits identifier and measurement data to passing satellites",
+        "platform ID does not imply encryption or ownership"
+      ]
+    },
+    {
+      "id": "s80t_dassault_vhf",
+      "label": "Dassault VHF transponder / S80-T",
+      "evidence": "confirmed_historical_example",
+      "fit": "orbital_payload",
+      "discriminator": "mission/integration documentation required",
+      "notes": [
+        "approximately 7 kg experimental payload",
+        "mission launched in 1992"
+      ]
+    }
+  ],
+  "teb_disambiguation": [
+    {
+      "id": "teb_cctv",
+      "evidence": "confirmed_name_collision",
+      "conclusion": "French CCTV company; not evidence of a satellite transmitter model"
+    },
+    {
+      "id": "danfoss_teb",
+      "evidence": "confirmed_abbreviation",
+      "conclusion": "TEB means Total Error Band in pressure transmitter specifications"
+    },
+    {
+      "id": "teb_ai_taihua",
+      "evidence": "unconfirmed",
+      "conclusion": "do not promote without a primary source"
+    }
+  ],
+  "assurance_layers": [
+    "device_regulatory_approval",
+    "network_or_service_activation",
+    "professional_uplink_station_and_space_segment_verification"
+  ],
+  "identification_rule": "Do not identify by color or a single code alone; require at least one additional technical anchor.",
+  "sources": [
+    "https://ixtenso.de/manufacturer/1516-teb.html",
+    "https://www.kddi.com/english/corporate/news_release/archive/kdd/press-e96/021.html",
+    "https://www.boe.es/diario_boe/txt.php?id=BOE-A-1998-4870&lang=es",
+    "https://www.argos-system.org/about-argos/how-argos-works/",
+    "https://www.sstl.co.uk/space-portfolio/launched-missions/1990-1999/s80-t-launched-1992",
+    "https://www.eutelsat.com/satellite-network/accessing-space-segment"
+  ]
+}
