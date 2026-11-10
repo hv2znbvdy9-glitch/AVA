@@ -112,3 +112,73 @@ Integrationsunterlagen.
 
 Status: Recherche aktualisiert; keine Sendefunktion, kein Uplink und keine
 Systemänderung initialisiert.
+
+
+## Bildbelege ergänzt am 2026-11-10
+
+### Bildgruppe: TEB / iXtenso
+
+**Status: BESTÄTIGT.**
+
+Die bereitgestellten Screenshots zeigen den iXtenso-Herstellerdatensatz für TEB:
+
+- Sitz: Meursault, Frankreich
+- Gründungsjahr: 1978
+- Einordnung: CCTV solutions
+- genannte Produktklassen: Digitalrekorder, Dome-/Fixkameras, TUB Camera und
+  Videoanalysefunktionen
+
+Diese Screenshots stärken die bereits dokumentierte Schlussfolgerung:
+**TEB ist hier der Firmenname eines Videoüberwachungsanbieters; daraus folgt
+kein Satelliten- oder Funktransmitter mit der Modellbezeichnung „TEB“.**
+
+### Bildgruppe: elektromagnetisches Spektrum
+
+**Status: GRUNDLAGE / BESTÄTIGT.**
+
+Das bereitgestellte Spektrum-Diagramm ordnet Radio, Mikrowellen, Infrarot,
+sichtbares Licht, UV, Röntgen- und Gammastrahlung entlang steigender Frequenz
+und sinkender Wellenlänge. Für die AVA-Akte ist die korrekte Grundbeziehung:
+
+`c = f · λ`
+
+und für Photonen:
+
+`E = h · f`
+
+Alle elektromagnetischen Wellen bewegen sich im Vakuum mit Lichtgeschwindigkeit.
+Höhere Frequenz bedeutet daher **nicht höhere Ausbreitungsgeschwindigkeit**,
+sondern kürzere Wellenlänge und höhere Photonenenergie.
+
+### Bildgruppe: „Universal Quantum Readout / Microtubule Quantum Interface“
+
+**Status: UNBESTÄTIGTE HYPOTHESE / NICHT ALS TATSACHE ÜBERNEHMEN.**
+
+Die Grafik verbindet reale Begriffe wie Photoeffekt, Quantenphysik,
+Mikrotubuli und Bewusstsein zu einer einheitlichen „Readout“-Erzählung.
+Ein solcher universeller Mechanismus ist wissenschaftlich nicht etabliert.
+
+AVA führt diese Grafik daher ausschließlich als Hypothesen-/Medienbeispiel.
+Sie darf nicht als Nachweis dienen, dass Bewusstsein, Satellitenkommunikation,
+TEB-Geräte oder elektromagnetische Signale über einen gemeinsamen
+Quantenmechanismus gekoppelt sind.
+
+Aktuelle Forschung diskutiert quantenbasierte Bewusstseinsmodelle, darunter
+Orch-OR, weiterhin kontrovers. Es existieren sowohl Arbeiten, die bestimmte
+Mikrotubuli-/Quanteneffekte als kompatibel mit solchen Modellen interpretieren,
+als auch kritische Reviews, die fehlende Replikation und fehlende operationale
+Nachweise betonen. Der AVA-Evidenzstatus bleibt daher **UNSETTLED /
+NOT_ESTABLISHED**.
+
+## AVA Evidence-Gate für neue Bilder
+
+Jeder neue Bildfund wird künftig getrennt in folgende Felder eingeordnet:
+
+- `source_type`: primary / official / secondary / social / generated
+- `claim_type`: empirical / theoretical / historical / speculative
+- `evidence_status`: confirmed / supported / preliminary / unconfirmed / contradicted
+- `technical_relevance`: transmitter / signal / biology / unrelated
+- `operational_effect`: none by default
+
+Ein Bild allein darf niemals eine Sende-, Uplink-, medizinische oder
+Systemaktion auslösen.
