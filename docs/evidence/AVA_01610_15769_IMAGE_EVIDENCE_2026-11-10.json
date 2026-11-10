@@ -1,0 +1,44 @@
+{
+  "record": "AVA_01610_15769_IMAGE_EVIDENCE",
+  "version": 1,
+  "date": "2026-11-10",
+  "items": [
+    {
+      "id": "teb_ixtenso_screenshot",
+      "source_type": "public_webpage_screenshot",
+      "claim_type": "historical_company_profile",
+      "evidence_status": "confirmed",
+      "technical_relevance": "transmitter_disambiguation",
+      "conclusion": "TEB in the supplied iXtenso screenshots is a CCTV company in Meursault, France, founded in 1978; this is not evidence of a satellite transmitter model."
+    },
+    {
+      "id": "em_spectrum_infographic",
+      "source_type": "educational_infographic",
+      "claim_type": "physics_foundation",
+      "evidence_status": "confirmed_core_principles",
+      "technical_relevance": "signal_physics",
+      "conclusion": "Useful for c=f*lambda and E=h*f; higher frequency does not imply higher propagation speed in vacuum."
+    },
+    {
+      "id": "quantum_readout_consciousness_infographic",
+      "source_type": "unsourced_infographic",
+      "claim_type": "speculative",
+      "evidence_status": "not_established",
+      "technical_relevance": "none_for_transmitter_identification",
+      "conclusion": "Do not treat a universal quantum readout or microtubule-consciousness mechanism as established evidence; keep as hypothesis/media example only."
+    }
+  ],
+  "guardrails": {
+    "image_alone_can_trigger_operation": false,
+    "transmitter_control": false,
+    "uplink_configuration": false,
+    "medical_action": false,
+    "system_change": false
+  },
+  "external_reference_anchors": [
+    "https://ixtenso.de/manufacturer/1516-teb.html",
+    "https://science.nasa.gov/learn/basics-of-space-flight/chapter6-2/",
+    "https://science.nasa.gov/asset/webb/the-electromagnetic-spectrum-ems/",
+    "https://pubmed.ncbi.nlm.nih.gov/42137085/"
+  ]
+}
