@@ -697,6 +697,14 @@ test('AVA 01610 SATELLITE LAB should use ephemeral keys and explicit nested key 
 	assert.ok(!/[^\x00-\x7F]/.test(satelliteLabScriptContents));
 });
 
+test('AVA 01610 SATELLITE LAB should preserve first run evidence', () => {
+	assert.ok(satelliteLabScriptContents.includes("Get-Date -Format 'yyyyMMdd_HHmmss_fffffff'"));
+	assert.ok(satelliteLabScriptContents.includes("[guid]::NewGuid().ToString('N')"));
+	assert.ok(satelliteLabScriptContents.includes('if (Test-Path -LiteralPath $OutputRoot)'));
+	assert.ok(satelliteLabScriptContents.includes('New-Item -ItemType Directory -Path $OutputRoot -ErrorAction Stop'));
+	assert.ok(!satelliteLabScriptContents.includes('New-Item -ItemType Directory -Force -Path $OutputRoot'));
+});
+
 test('AVA 01610 SATELLITE LAB should stay local and avoid privileged system changes', () => {
 	const forbidden = [
 		'Invoke-WebRequest', 'Invoke-RestMethod', 'Register-ScheduledTask',
@@ -715,7 +723,9 @@ powerShellTest('AVA 01610 SATELLITE LAB should run and reject forged and replaye
 			'-File', satelliteLabScriptPath,
 			'-OutputDirectory', outputRoot,
 		], {stdio: 'pipe'});
-		const reportPath = path.join(outputRoot, 'Reports', 'ava_satellite_lab_log.json');
+		const runDirs = fs.readdirSync(outputRoot, {withFileTypes: true}).filter(item => item.isDirectory() && item.name.startsWith('AVA01610_'));
+		assert.equal(runDirs.length, 1, 'first run creates exactly one isolated folder');
+		const reportPath = path.join(outputRoot, runDirs[0].name, 'Reports', 'ava_satellite_lab_log.json');
 		const events = JSON.parse(fs.readFileSync(reportPath, 'utf8').replace(/^\uFEFF/, ''));
 		const types = events.map(event => event.Type);
 		assert.ok(types.includes('AUTH_SUCCESS'));
@@ -723,6 +733,10 @@ powerShellTest('AVA 01610 SATELLITE LAB should run and reject forged and replaye
 		assert.ok(types.includes('REPLAY_REJECTED'));
 		assert.ok(types.includes('SIM_COMPLETE'));
 		assert.ok(!fs.readFileSync(reportPath, 'utf8').includes('SecretKey_'));
+		execFileSync('pwsh', ['-NoProfile', '-File', satelliteLabScriptPath, '-OutputDirectory', outputRoot], {stdio: 'pipe'});
+		const afterRerun = fs.readdirSync(outputRoot, {withFileTypes: true}).filter(item => item.isDirectory() && item.name.startsWith('AVA01610_'));
+		assert.equal(afterRerun.length, 2, 'second run preserves the first');
+		assert.ok(fs.existsSync(reportPath), 'first report must still exist');
 	} finally {
 		fs.rmSync(outputRoot, {recursive: true, force: true});
 	}
