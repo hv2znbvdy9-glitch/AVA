@@ -129,6 +129,10 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 - [Hardened C++ gRPC server](examples/grpc-secure/README.md) - mandatory mTLS,
   certificate-identity authorization, bounded resources, rate limiting, and
   signal-safe graceful shutdown.
+- [Access control](ACCESS_CONTROL.md), [security policy](SECURITY_POLICY.md),
+  [code of conduct](CODE_OF_CONDUCT.md), and
+  [incident response](INCIDENT_RESPONSE.md) - AVA repository guidance and
+  GitHub-owner setup boundaries.
 
 ## Windows recovery reference
 
