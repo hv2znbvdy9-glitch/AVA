@@ -8,6 +8,7 @@ const {execSync, exec} = require('child_process');
  * @param {object} [options] - Options for execution.
  * @param {boolean} [options.silent] - If true, suppress stdout output.
  * @param {string} [options.cwd] - Working directory for the command.
+ * @param {number} [options.timeout] - Optional positive timeout in milliseconds.
  * @returns {{stdout: string, stderr: string, exitCode: number}} Result of the execution.
  */
 function run(command, options = {}) {
@@ -15,10 +16,12 @@ function run(command, options = {}) {
 		throw new Error('A command string is required');
 	}
 
+	const timeout = getTimeout(options);
 	const execOptions = {
 		encoding: 'utf8',
 		cwd: options.cwd || process.cwd(),
 		stdio: 'pipe',
+		timeout,
 	};
 
 	try {
@@ -45,7 +48,7 @@ function run(command, options = {}) {
 		return {
 			stdout: output,
 			stderr,
-			exitCode: error.status || 1,
+			exitCode: getExitCode(error, timeout),
 		};
 	}
 }
@@ -70,6 +73,7 @@ function runAll(commands, options = {}) {
  * @param {object} [options] - Options for execution.
  * @param {boolean} [options.silent] - If true, suppress stdout/stderr output.
  * @param {string} [options.cwd] - Working directory for the command.
+ * @param {number} [options.timeout] - Optional positive timeout in milliseconds.
  * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>} Resolves with the result.
  */
 function runAsync(command, options = {}) {
@@ -77,9 +81,17 @@ function runAsync(command, options = {}) {
 		return Promise.reject(new Error('A command string is required'));
 	}
 
+	let timeout;
+	try {
+		timeout = getTimeout(options);
+	} catch (error) {
+		return Promise.reject(error);
+	}
+
 	const execOptions = {
 		encoding: 'utf8',
 		cwd: options.cwd || process.cwd(),
+		timeout,
 	};
 
 	return new Promise((resolve) => {
@@ -95,10 +107,38 @@ function runAsync(command, options = {}) {
 			resolve({
 				stdout: out,
 				stderr: err,
-				exitCode: error ? (error.code || 1) : 0,
+				exitCode: getExitCode(error, timeout),
 			});
 		});
 	});
+}
+
+function getTimeout(options) {
+	if (options.timeout === undefined) {
+		return undefined;
+	}
+
+	if (!Number.isSafeInteger(options.timeout) || options.timeout <= 0) {
+		throw new Error('timeout must be a positive integer in milliseconds');
+	}
+
+	return options.timeout;
+}
+
+function getExitCode(error, timeout) {
+	if (!error) {
+		return 0;
+	}
+
+	if (timeout !== undefined && (error.killed || error.code === 'ETIMEDOUT')) {
+		return 124;
+	}
+
+	if (Number.isInteger(error.status)) {
+		return error.status;
+	}
+
+	return Number.isInteger(error.code) ? error.code : 1;
 }
 
 /**

@@ -25,5 +25,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Audit npm dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: npm audit --audit-level=moderate
+
       - name: Run tests
         run: npm test
