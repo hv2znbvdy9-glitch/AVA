@@ -77,7 +77,7 @@ function Get-JsonLines {
             $out.Add(($line | ConvertFrom-Json)) | Out-Null
         } catch {}
     }
-    return @($out)
+    return $out.ToArray()
 }
 
 function Get-RemoteIpReputation {
@@ -319,8 +319,9 @@ function New-Snapshot {
         services      = @(Get-ServiceLite)
         nmap          = Get-NmapInfo
     }
+}
 
-    function Get-ProcessGraph {
+function Get-ProcessGraph {
         param($Snapshot)
 
         $nodes = New-Object System.Collections.Generic.List[object]
@@ -335,10 +336,11 @@ function New-Snapshot {
 
             if ($p.ppid -and [int]$p.ppid -gt 0) {
                 $edges.Add([ordered]@{
-                    relation = "parent_child"
-                    from     = $p.ppid
-                    to       = $p.pid
-                    detail   = "$($p.ppid) -> $($p.pid)"
+                    relation          = "parent_child"
+                    from              = $p.ppid
+                    to                = $p.pid
+                    detail            = "$($p.ppid) -> $($p.pid)"
+                    remote_reputation = ""
                 }) | Out-Null
             }
         }
@@ -355,8 +357,8 @@ function New-Snapshot {
         }
 
         [ordered]@{
-            nodes = @($nodes)
-            edges = @($edges)
+            nodes = $nodes.ToArray()
+            edges = $edges.ToArray()
         }
     }
 
@@ -404,9 +406,9 @@ function New-Snapshot {
 
         return [ordered]@{
             status  = $status
-            added   = @($added)
-            changed = @($changed)
-            missing = @($missing)
+            added   = $added.ToArray()
+            changed = $changed.ToArray()
+            missing = $missing.ToArray()
             files   = $current
         }
     }
@@ -433,7 +435,7 @@ function New-Snapshot {
         $score = 0
         $reasons = New-Object System.Collections.Generic.List[string]
 
-        foreach ($a in @($Alerts)) {
+        foreach ($a in $Alerts) {
             switch ($a.severity) {
                 "CRITICAL" { $score += 40; $reasons.Add("CRITICAL Alert: $($a.type)") | Out-Null }
                 "HIGH"     { $score += 25; $reasons.Add("HIGH Alert: $($a.type)") | Out-Null }
@@ -467,7 +469,7 @@ function New-Snapshot {
         [ordered]@{
             score   = $score
             level   = $level
-            reasons = @($reasons)
+            reasons = $reasons.ToArray()
         }
     }
 
@@ -477,14 +479,15 @@ function New-Snapshot {
         $trend = Load-JsonFile -Path $TrendFile
         if (-not $trend) { $trend = @() }
 
-        $entry = [ordered]@{
+        $alertItems = @($Alerts | ForEach-Object { $_ })
+        $entry = [pscustomobject]@{
             time         = (Get-Date).ToString("s")
             date         = (Get-Date).ToString("yyyy-MM-dd")
-            alerts_total = @($Alerts).Count
-            critical     = @($Alerts | Where-Object { $_.severity -eq "CRITICAL" }).Count
-            high         = @($Alerts | Where-Object { $_.severity -eq "HIGH" }).Count
-            medium       = @($Alerts | Where-Object { $_.severity -eq "MEDIUM" }).Count
-            low          = @($Alerts | Where-Object { $_.severity -eq "LOW" }).Count
+            alerts_total = $alertItems.Count
+            critical     = @($alertItems | Where-Object { $_.severity -eq "CRITICAL" }).Count
+            high         = @($alertItems | Where-Object { $_.severity -eq "HIGH" }).Count
+            medium       = @($alertItems | Where-Object { $_.severity -eq "MEDIUM" }).Count
+            low          = @($alertItems | Where-Object { $_.severity -eq "LOW" }).Count
             risk_score   = $Risk.score
             tcp_count    = @($Snapshot.network.tcp).Count
         }
@@ -523,31 +526,43 @@ function New-Snapshot {
         $list = New-Object System.Collections.Generic.List[object]
         foreach ($m in @($memory)) { $list.Add($m) | Out-Null }
 
-        foreach ($a in @($Alerts)) {
-            $pid = ""
+        foreach ($a in $Alerts) {
+            $procPid = ""
             $processName = ""
             $remoteIp = ""
-            if ($a.data) {
-                if ($a.data.pid) { $pid = [string]$a.data.pid }
-                if ($a.data.process) { $processName = [string]$a.data.process }
-                if ($a.data.remote_address) { $remoteIp = [string]$a.data.remote_address }
+            $dataObj = $null
+            if ($a -is [System.Collections.IDictionary]) {
+                if ($a.Contains("data")) { $dataObj = $a["data"] }
+            } elseif ($a.PSObject.Properties["data"]) {
+                $dataObj = $a.data
+            }
+            if ($dataObj) {
+                if ($dataObj -is [System.Collections.IDictionary]) {
+                    if ($dataObj.Contains("pid") -and $dataObj["pid"]) { $procPid = [string]$dataObj["pid"] }
+                    if ($dataObj.Contains("process") -and $dataObj["process"]) { $processName = [string]$dataObj["process"] }
+                    if ($dataObj.Contains("remote_address") -and $dataObj["remote_address"]) { $remoteIp = [string]$dataObj["remote_address"] }
+                } else {
+                    if ($dataObj.PSObject.Properties["pid"] -and $dataObj.pid) { $procPid = [string]$dataObj.pid }
+                    if ($dataObj.PSObject.Properties["process"] -and $dataObj.process) { $processName = [string]$dataObj.process }
+                    if ($dataObj.PSObject.Properties["remote_address"] -and $dataObj.remote_address) { $remoteIp = [string]$dataObj.remote_address }
+                }
             }
 
-            $corrId = Sha256Text "$($a.type)|$($a.message)|$pid|$remoteIp"
+            $corrId = Sha256Text "$($a.type)|$($a.message)|$procPid|$remoteIp"
             $entry = [ordered]@{
                 time          = (Get-Date).ToString("s")
                 correlation_id = $corrId
                 alert_type    = $a.type
                 severity      = $a.severity
                 message       = $a.message
-                process_pid   = $pid
+                process_pid   = $procPid
                 process_name  = $processName
                 remote_ip     = $remoteIp
                 memory_tag    = "AVA Memory ↔ Alert ↔ Prozess ↔ Netzwerk"
             }
 
             $exists = $false
-            foreach ($m in @($list)) {
+            foreach ($m in $list) {
                 if ($m.correlation_id -eq $corrId) { $exists = $true; break }
             }
             if (-not $exists) { $list.Add($entry) | Out-Null }
@@ -557,7 +572,6 @@ function New-Snapshot {
         Save-JsonFile -Path $MemoryFile -Data $final
         return $final
     }
-}
 
 function Compare-WithBaseline {
     param($Snapshot)
@@ -570,7 +584,7 @@ function Compare-WithBaseline {
             type     = "BASELINE"
             message  = "Keine Baseline vorhanden. Starte mit -CreateBaseline."
         })
-        return $alerts
+        return ,$alerts
     }
 
     $base = Get-Content $BaselineFile -Raw | ConvertFrom-Json
@@ -630,7 +644,7 @@ function Compare-WithBaseline {
         }
     }
 
-    return $alerts
+    return ,$alerts
 }
 
 function Build-Portal {
@@ -847,7 +861,7 @@ foreach ($a in $alerts) {
     }
 }
 
-Build-Portal -Snapshot $snapshot -Alerts $alerts -Risk $risk -Timeline @($timeline) -Trend @($trend) -ProcessGraph $processGraph -Integrity $integrity -Memory $memory
+Build-Portal -Snapshot $snapshot -Alerts $alerts -Risk $risk -Timeline ($timeline.ToArray()) -Trend @($trend) -ProcessGraph $processGraph -Integrity $integrity -Memory $memory
 
 Write-Host ""
 Write-Host "AVA CORE STACK abgeschlossen." -ForegroundColor Cyan
