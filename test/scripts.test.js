@@ -233,6 +233,51 @@ test('AVA CORE STACK script should define core defensive functions', () => {
 	assert.ok(coreStackScriptContents.includes('Integritätsprüfung der AVA-Dateien selbst'));
 });
 
+powerShellTest('AVA CORE STACK functions should be top-level and execute cleanly under StrictMode', () => {
+	const escapedPath = coreStackScriptPath.replace(/'/g, "''");
+	const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ava-core-stack-test-'));
+	const escapedTmp = tmpDir.replace(/'/g, "''");
+	try {
+		const psCommand = [
+			'Set-StrictMode -Version Latest',
+			'$ErrorActionPreference = "Stop"',
+			`$tokens = $null; $errors = $null`,
+			`$ast = [System.Management.Automation.Language.Parser]::ParseFile('${escapedPath}', [ref]$tokens, [ref]$errors)`,
+			'if ($errors.Count -gt 0) { throw "Parse errors" }',
+			'$topFuncs = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Parent -is [System.Management.Automation.Language.NamedBlockAst] -and $n.Parent.Parent -is [System.Management.Automation.Language.ScriptBlockAst] -and $null -eq $n.Parent.Parent.Parent }, $true)',
+			'$names = @($topFuncs | ForEach-Object { $_.Name })',
+			'foreach ($req in @("Get-ProcessGraph","Get-AvaFileIntegrity","Add-TimelineEntry","Get-RiskAssessment","Update-TrendState","Get-TrendByDay","Update-AvaMemory","Build-Portal")) { if ($names -notcontains $req) { throw "Missing top-level function: $req" } }',
+			'foreach ($fn in $topFuncs) { Invoke-Expression $fn.Extent.Text }',
+			`$MemoryFile = '${escapedTmp}/ava_memory.json'`,
+			`$TrendFile = '${escapedTmp}/trend_core.json'`,
+			`$PortalFile = '${escapedTmp}/ava_core_portal.html'`,
+			'if ((Get-RemoteIpReputation "127.0.0.1") -ne "LOOPBACK") { throw "Expected LOOPBACK" }',
+			'if ((Get-RemoteIpReputation "192.168.1.10") -ne "PRIVATE") { throw "Expected PRIVATE" }',
+			'if ((Get-RemoteIpReputation "8.8.8.8") -ne "PUBLIC_UNKNOWN") { throw "Expected PUBLIC_UNKNOWN" }',
+			'$snap = [ordered]@{ time = "2026-11-20T12:00:00"; computer = "TEST"; user = "tester"; powershell = @([ordered]@{ pid = 100; ppid = 50; name = "pwsh.exe"; suspicious = $false; hits = @() }); network = [ordered]@{ tcp = @([ordered]@{ process = "pwsh"; pid = 100; local_port = 50000; remote_address = "8.8.8.8"; remote_port = 443; remote_reputation = "PUBLIC_UNKNOWN" }); udp = @() } }',
+			'$graph = Get-ProcessGraph -Snapshot $snap',
+			'if ($graph.edges.Count -lt 2) { throw "Expected parent_child and process_network edges" }',
+			'$alerts = New-Object System.Collections.Generic.List[object]',
+			'$alerts.Add([ordered]@{ severity = "MEDIUM"; type = "NETWORK_RISK_PORT"; message = "Test"; data = [ordered]@{ pid = 100; process = "pwsh"; remote_address = "8.8.8.8" } })',
+			'$integrity = [ordered]@{ status = "OK"; added = @(); changed = @(); missing = @() }',
+			'$risk = Get-RiskAssessment -Alerts $alerts -Snapshot $snap -Integrity $integrity',
+			'if ($risk.score -ne 15 -or $risk.level -ne "LOW") { throw "Unexpected risk score/level" }',
+			'$mem1 = @(Update-AvaMemory -Alerts $alerts)',
+			'$mem2 = @(Update-AvaMemory -Alerts $alerts)',
+			'if ($mem1.Count -ne 1 -or $mem2.Count -ne 1) { throw "Expected deduplicated memory entry" }',
+			'$trendEntries = Update-TrendState -Snapshot $snap -Alerts $alerts -Risk $risk',
+			'$trend = @(Get-TrendByDay -TrendEntries $trendEntries)',
+			'if ($trend.Count -lt 1) { throw "Expected daily trend summary" }',
+			'$tl = @(Add-TimelineEntry -Category "SYSTEM" -Severity "INFO" -Title "Test" -Detail "OK")',
+			'Build-Portal -Snapshot $snap -Alerts $alerts -Risk $risk -Timeline $tl -Trend $trend -ProcessGraph $graph -Integrity $integrity -Memory $mem2',
+			'if (-not (Test-Path $PortalFile)) { throw "Portal file not created" }',
+		].join('; ');
+		execFileSync('pwsh', ['-NoProfile', '-Command', psCommand], {stdio: 'pipe'});
+	} finally {
+		fs.rmSync(tmpDir, {recursive: true, force: true});
+	}
+});
+
 // ---------------------------------------------------------------------------
 // AVA SOC Portal V6 — Safe Graph Engine
 // ---------------------------------------------------------------------------
