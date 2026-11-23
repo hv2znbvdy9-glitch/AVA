@@ -38,6 +38,16 @@ const {
 	conductanceCurrent,
 	eulerStep,
 } = require('./neuron/cable');
+const {
+	MAX_COMPARTMENTS,
+	simulateMultiCompartment,
+} = require('./neuron/multi-compartment');
+const {
+	MAP3D_ARTICLE,
+	MAP3D_LIBRARIES,
+	map3dLibrariesData,
+	map3dLibrariesReport,
+} = require('./map3d-libraries');
 const {AVA_RADIO_PROFILE} = require('./voice/config');
 const {processAudio} = require('./voice/engine');
 const {MAX_TARGET_NODES, simulateScale} = require('./scale-lab');
@@ -81,6 +91,12 @@ module.exports = {
 	cableEquationDerivative,
 	conductanceCurrent,
 	eulerStep,
+	MAX_COMPARTMENTS,
+	simulateMultiCompartment,
+	MAP3D_ARTICLE,
+	MAP3D_LIBRARIES,
+	map3dLibrariesData,
+	map3dLibrariesReport,
 	AVA_RADIO_PROFILE,
 	processAudio,
 	MAX_TARGET_NODES,
