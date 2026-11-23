@@ -1,0 +1,42 @@
+{
+  "marker": "PEAKMAN",
+  "project": "AVA",
+  "case_marker": "01610-15769",
+  "type": "project_marker",
+  "version": 1,
+  "status": "active_review_profile",
+  "operational_authority": "none",
+  "meaning": "Stricter evidence and safety review marker; not a person, culprit, device, medical cause, or external actor.",
+  "sequence": [
+    "preserve_original",
+    "record_provenance",
+    "separate_observation_from_interpretation",
+    "verify_against_primary_evidence",
+    "classify_uncertainty",
+    "prefer_read_only_or_isolated_tests",
+    "require_explicit_authorization_for_state_change",
+    "document_result"
+  ],
+  "evidence_states": [
+    "CONFIRMED",
+    "SUPPORTED",
+    "PRELIMINARY",
+    "UNCONFIRMED",
+    "CONTRADICTED",
+    "UNKNOWN"
+  ],
+  "guards": {
+    "counterattack": false,
+    "retaliation": false,
+    "person_targeting": false,
+    "third_party_scanning": false,
+    "third_party_modification": false,
+    "transmitter_control": false,
+    "automatic_firewall_changes": false,
+    "automatic_registry_changes": false,
+    "automatic_scheduled_task_changes": false,
+    "medical_attribution": false,
+    "merge_without_explicit_approval": false,
+    "destructive_github_actions_without_explicit_approval": false
+  }
+}
