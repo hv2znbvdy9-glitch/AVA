@@ -63,6 +63,20 @@ async function main() {
 		assert.strictEqual(result.exitCode, 0);
 	});
 
+	await test('should stop a command when its timeout expires', () => {
+		const result = run('node -e "setTimeout(() => {}, 1000)"', {silent: true, timeout: 25});
+		assert.strictEqual(result.exitCode, 124);
+	});
+
+	await test('should reject invalid timeouts', () => {
+		assert.throws(() => run('echo hello', {timeout: 0}), {
+			message: 'timeout must be a positive integer in milliseconds',
+		});
+		assert.throws(() => run('echo hello', {timeout: 1.5}), {
+			message: 'timeout must be a positive integer in milliseconds',
+		});
+	});
+
 	await test('runAll should run multiple commands and return results array', () => {
 		const results = runAll(['echo hello', 'echo world'], {silent: true});
 		assert.strictEqual(results.length, 2);
@@ -119,6 +133,17 @@ async function main() {
 		const cwd = os.tmpdir();
 		const result = await runAsync('node -e "console.log(process.cwd())"', {silent: true, cwd});
 		assert.strictEqual(result.stdout.trim(), cwd);
+	});
+
+	await test('runAsync should stop a command when its timeout expires', async () => {
+		const result = await runAsync('node -e "setTimeout(() => {}, 1000)"', {silent: true, timeout: 25});
+		assert.strictEqual(result.exitCode, 124);
+	});
+
+	await test('runAsync should reject invalid timeouts', async () => {
+		await assert.rejects(() => runAsync('echo hello', {timeout: 0}), {
+			message: 'timeout must be a positive integer in milliseconds',
+		});
 	});
 
 	// runAllParallel tests
