@@ -47,4 +47,16 @@ for (const command of forbiddenActiveCommands) {
   assert.ok(!script.includes(command), 'read-only inventory must not contain ' + command);
 }
 
-console.log('AVA safe-start plan tests: ' + expectedLaunchers.length + ' launcher definitions and read-only safety boundaries passed.');
+// Preserve first snapshot: successive runs must never reuse a timestamp-only folder.
+const winAuditPath = path.join(__dirname, '..', 'scripts', 'windows', 'AVA_DEVITO_01610_SAFE_AUDIT_READONLY.ps1');
+const winAuditScript = fs.readFileSync(winAuditPath, 'utf8');
+assert.ok(winAuditScript.includes("Get-Date -Format 'yyyyMMdd_HHmmss_fffffff'"), 'high-resolution timestamp required');
+assert.ok(winAuditScript.includes("[guid]::NewGuid().ToString('N')"), 'unique run token required');
+assert.ok(winAuditScript.includes("if (Test-Path -LiteralPath $outDir)"), 'existing output must trigger stop');
+assert.ok(winAuditScript.includes("New-Item -ItemType Directory -Path $outDir -ErrorAction Stop"), 'directory creation must fail closed');
+assert.ok(!winAuditScript.includes("New-Item -ItemType Directory -Path $outDir -Force"), 'audit must not force-reuse output directory');
+for (const forbidden of ['Remove-NetFirewallRule', 'New-NetFirewallRule', 'Set-MpPreference', 'Register-ScheduledTask', 'Start-Process', 'Invoke-Expression']) {
+  assert.ok(!winAuditScript.includes(forbidden), 'read-only audit must not contain command ' + forbidden);
+}
+
+console.log('AVA safe-start plan tests: ' + expectedLaunchers.length + ' launchers, boundaries and unique audit output checks passed.');

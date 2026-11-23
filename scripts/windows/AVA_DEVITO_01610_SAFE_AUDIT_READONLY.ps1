@@ -3,13 +3,17 @@
 # Does not change firewall, Defender, registry, services, tasks, or user settings.
 $ErrorActionPreference = 'Continue'
 
-$stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+$stamp = Get-Date -Format 'yyyyMMdd_HHmmss_fffffff'
+$runToken = [guid]::NewGuid().ToString('N')
 $desktop = [Environment]::GetFolderPath('Desktop')
 if ([string]::IsNullOrWhiteSpace($desktop) -or -not (Test-Path -LiteralPath $desktop)) {
     $desktop = (Get-Location).Path
 }
-$outDir = Join-Path $desktop "AVA_SAFE_AUDIT_$stamp"
-New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+$outDir = Join-Path $desktop "AVA_SAFE_AUDIT_${stamp}_$runToken"
+if (Test-Path -LiteralPath $outDir) {
+    throw 'STOP: audit output directory already exists; the original report must not be overwritten.'
+}
+New-Item -ItemType Directory -Path $outDir -ErrorAction Stop | Out-Null
 
 $report = [ordered]@{
     schema = 'ava.safe-audit.v1'
