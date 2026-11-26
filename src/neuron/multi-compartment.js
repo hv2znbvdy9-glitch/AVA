@@ -83,7 +83,7 @@ function stepAll(compartments, connections, dt, inputCurrents) {
  * @param {number} options.dt Integration step in ms, in (0, 0.1].
  * @param {Array<object>} [options.compartments] One options object per
  *   compartment, forwarded to HodgkinHuxleyCompartment. Defaults to a soma
- *   plus two passive chain segments.
+ *   plus two active HH chain segments with the same default channels.
  * @param {Array<{from: number, to: number, conductance: number}>} [options.connections]
  *   Ohmic axial couplings between compartment indices.
  * @param {(timeMs: number, index: number) => number} [options.current]
@@ -144,6 +144,10 @@ function simulateMultiCompartment({
 			timeMs,
 			compartments: compartments.map((compartment) => compartment.snapshot()),
 		});
+		// Do not emit the endpoint twice or evaluate a stimulus at a zero-length step.
+		if (timeMs === durationMs) {
+			break;
+		}
 		if (step < steps) {
 			const stepSize = Math.min(dt, durationMs - timeMs);
 			const inputCurrents = compartments.map(
