@@ -21,13 +21,24 @@ Lernsystem, kein Bewusstsein und kein autonomer AVA- oder JARVIS-Agent.
 - kompartimentspezifische Stromeingabe über `current(timeMs, index)`;
 - Ableitungen werden netzwerkweit vor jeder Zustandsänderung berechnet, sodass
   das Ergebnis unabhängig von der Kompartimentreihenfolge ist;
-- Standardtopologie: stimuliertes Soma (Index 0) mit zwei passiv gekoppelten
-  Segmenten;
+- Standardtopologie: drei aktive Hodgkin-Huxley-Kompartimente mit denselben
+  Kanalparametern, als Kette gekoppelt; die CLI stimuliert nur das Soma
+  (Index 0). Ohne vorgegebene Stromfunktion fließt kein äußerer Eingangsstrom;
 - dieselben Begrenzungen wie das Einzelkompartiment-Modell: `dt` in
   (0, 0,1] ms, höchstens 1.000.000 Schritte, höchstens 10.000 Kompartimente;
 - deterministische Regressionstests für Ruheverhalten, axiale Ausbreitung,
   isolierte Kompartimente, distale Stimulation und Übereinstimmung mit der
-  Einzelkompartiment-Referenz bei einem einzelnen Kompartiment.
+  Einzelkompartiment-Referenz bei einem einzelnen Kompartiment;
+- zusätzliche Tests für Ladungserhaltung bei rein axialer Kopplung,
+  unveränderte Ergebnisse nach Umnummerierung der Kompartimente, unabhängige
+  Messpunktkopien sowie CLI- und API-Aufrufe;
+- der Endzeitpunkt wird einmal ausgegeben, auch bei nicht ganzzahligem
+  Verhältnis von Dauer zu Schrittweite oder Rundung wie bei 0,07 / 0,01.
+
+Die Standardsegmente sind nicht passiv. Für ein passives Segment werden
+`parameters: {gNa: 0, gK: 0}` gesetzt; der Leckstrom bleibt dabei erhalten.
+Der Ladungserhaltungstest deaktiviert zusätzlich `gLeak`, um ausschließlich
+den Ladungsaustausch zwischen zwei Kompartimenten zu prüfen.
 
 Nicht implementiert sind rekonstruierte Morphologie, die veröffentlichte
 Hay-Modelltopologie und ihre Kanalverteilungen, ein Axoninitialsegment,
