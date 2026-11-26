@@ -29,6 +29,22 @@ const stimulated = simulate({
 });
 assert.ok(Math.max(...stimulated.map((sample) => sample.voltage)) > 0);
 
+// Floating-point division must not cause a zero-length step at the end.
+for (const [durationMs, expectedSamples] of [[0.07, 8], [0.025, 4], [0.007, 2]]) {
+	let calls = 0;
+	const shortTrace = simulate({durationMs, dt: 0.01, current: (timeMs) => {
+		assert.ok(timeMs < durationMs, 'current is only evaluated before the endpoint');
+		calls += 1;
+		return 0;
+	}});
+	assert.strictEqual(shortTrace.length, expectedSamples);
+	assert.strictEqual(shortTrace.at(-1).timeMs, durationMs);
+	assert.strictEqual(calls, expectedSamples - 1);
+	shortTrace.slice(1).forEach((sample, index) => {
+		assert.ok(sample.timeMs > shortTrace[index].timeMs, 'timestamps must strictly increase');
+	});
+}
+
 for (const dt of [0, -0.01, 0.2, Number.NaN, Number.POSITIVE_INFINITY]) {
 	assert.throws(() => simulate({durationMs: 1, dt}), /dt/);
 }
