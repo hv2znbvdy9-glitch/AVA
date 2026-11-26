@@ -136,6 +136,10 @@ function simulate({durationMs = 50, dt = 0.01, current = () => 0, compartment} =
 	for (let index = 0; index <= steps; index += 1) {
 		const timeMs = Math.min(durationMs, index * dt);
 		samples.push({timeMs, ...neuron.snapshot()});
+		// Floating-point division can make ceil(durationMs / dt) one step too large.
+		if (timeMs === durationMs) {
+			break;
+		}
 		if (index < steps) {
 			neuron.step(Math.min(dt, durationMs - timeMs), current(timeMs));
 		}

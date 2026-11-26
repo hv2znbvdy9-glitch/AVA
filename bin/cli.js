@@ -10,6 +10,8 @@ const {neuronModelReport} = require('../src/neuron-model');
 const {githubProfileReport} = require('../src/github-profile-report');
 const {avatar01610Report} = require('../src/avatar-01610');
 const {simulate} = require('../src/neuron/hodgkin-huxley');
+const {simulateMultiCompartment} = require('../src/neuron/multi-compartment');
+const {map3dLibrariesReport} = require('../src/map3d-libraries');
 
 const args = process.argv.slice(2);
 const githubProfileFlags = ['--github-profile-report', '--profile-report'];
@@ -34,6 +36,29 @@ function printNeuronSimulation() {
 		samples: trace.length,
 		peakVoltageMv: Number(peakVoltageMv.toFixed(6)),
 		spiked: peakVoltageMv > 0,
+	}, null, 2));
+}
+
+function printMultiCompartmentSimulation() {
+	const durationMs = 30;
+	const dt = 0.01;
+	const trace = simulateMultiCompartment({
+		durationMs,
+		dt,
+		current: (timeMs, index) => (index === 0 && timeMs >= 5 && timeMs < 25 ? 10 : 0),
+	});
+	const peakByCompartment = trace[0].compartments.map((unused, index) => Number(
+		Math.max(...trace.map((sample) => sample.compartments[index].voltage)).toFixed(6),
+	));
+	console.log(JSON.stringify({
+		model: 'coupled-multi-compartment-hodgkin-huxley',
+		scope: 'deterministic-teaching-prototype',
+		compartments: trace[0].compartments.length,
+		durationMs,
+		dtMs: dt,
+		samples: trace.length,
+		peakVoltageMv: peakByCompartment,
+		spiked: peakByCompartment[0] > 0,
 	}, null, 2));
 }
 
@@ -69,6 +94,16 @@ if (args.includes('--neuron-sim')) {
 	process.exit(0);
 }
 
+if (args.includes('--neuron-multi')) {
+	printMultiCompartmentSimulation();
+	process.exit(0);
+}
+
+if (args.includes('--map3d-libraries')) {
+	console.log(map3dLibrariesReport());
+	process.exit(0);
+}
+
 if (args.includes('--avatar-01610')) {
 	console.log(avatar01610Report());
 	process.exit(0);
@@ -83,10 +118,14 @@ if (args.length === 0) {
 	console.error('Usage: ava <command>');
 	console.error('       ava run <command>');
 	console.error('       ava --parallel <cmd1> [cmd2 ...]');
+	console.error('       ava --color');
+	console.error('       ava --overview');
 	console.error('       ava --safe-local-node');
 	console.error('       ava --repair-windows-system-files');
 	console.error('       ava --neuron-model');
 	console.error('       ava --neuron-sim');
+	console.error('       ava --neuron-multi');
+	console.error('       ava --map3d-libraries');
 	console.error('       ava --avatar-01610');
 	console.error('       ava --github-profile-report');
 	console.error('       ava --profile-report');
@@ -113,6 +152,16 @@ if (args[0] === 'neuron-model') {
 
 if (args[0] === 'neuron-sim') {
 	printNeuronSimulation();
+	process.exit(0);
+}
+
+if (args[0] === 'neuron-multi') {
+	printMultiCompartmentSimulation();
+	process.exit(0);
+}
+
+if (args[0] === 'map3d-libraries') {
+	console.log(map3dLibrariesReport());
 	process.exit(0);
 }
 

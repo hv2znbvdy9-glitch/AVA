@@ -44,11 +44,12 @@ Der aktuelle AVA-Prototyp enthält:
 - ein klassisches Einzelkompartiment-Hodgkin-Huxley-Modell;
 - Natrium-, Kalium- und Leckströme;
 - generische Hilfsfunktionen für Leitfähigkeitsströme, axiale Kopplungsströme, Kabelgleichungsableitungen und deterministische Euler-Schritte;
+- eine begrenzte Multi-Kompartiment-Kette aus klassischen Hodgkin-Huxley-Kompartimenten mit ohmscher axialer Kopplung und kompartimentspezifischer Stromeingabe (Lehrprototyp ohne rekonstruierte Morphologie und ohne ortsabhängige Kanaldichten);
 - strukturierte Referenzmetadaten für Hay et al. (2011);
 - die spannungsabhängigen Torvariablen m, h und n;
 - numerisch stabile Behandlung der entfernbaren Singularitäten der Ratenfunktionen;
 - Prüfungen für endliche Werte, Zeitschritt, Leitfähigkeiten, Torbereiche und maximale Schrittzahl;
-- einen deterministischen Ruhetest und einen strominduzierten Spike-Test;
+- deterministische Tests für Ruheverhalten, strominduzierte Spikes, axiale Ausbreitung und isolierte Kompartimente;
 - eine begrenzte CLI-Demonstration sowie eine Bibliotheks-API.
 
 Nicht implementiert sind:
@@ -69,6 +70,7 @@ Nach dem Klonen des Repositorys:
 npm install
 npm run neuron:model
 npm run neuron:sim
+npm run neuron:multi
 npm test
 ~~~
 
@@ -77,6 +79,7 @@ Unter Windows PowerShell gelten dieselben npm-Befehle. Alternativ kann die lokal
 ~~~powershell
 node .\bin\cli.js --neuron-model
 node .\bin\cli.js --neuron-sim
+node .\bin\cli.js --neuron-multi
 ~~~
 
 Die npm-Skripte sind gegenüber einem unqualifizierten npx-Aufruf vorzuziehen, weil der Paketname „ava“ auch von anderen npm-Projekten verwendet wird.
@@ -110,7 +113,7 @@ Aus der Simulation dürfen daher keine Aussagen über menschliches Denken, Ident
 
 Zu den komplexesten biologisch plausiblen Einzelzellmodellen gehören morphologisch rekonstruierte, aktive Multi-Kompartiment-Leitfähigkeitsmodelle von Pyramidenzellen. Einige erfassen aktive dendritische Eigenschaften besonders detailliert; andere integrieren Zehntausende explizite Spines. Kein einzelnes umfassend validiertes Modell verbindet derzeit sämtliche Elektrophysiologie, Biochemie, Plastizität, Stoffwechsel, Genexpression und Glia-Interaktion.
 
-AVA setzt davon bewusst nur den kleinsten überprüfbaren Kern um: ein begrenztes Einzelkompartiment-Hodgkin-Huxley-Modell. Der nächste seriöse Schritt ist nicht, es „intelligent“ zu nennen, sondern Morphologie, Kopplung, Solver, Datenherkunft und Validierung schrittweise und messbar zu erweitern.
+AVA setzt davon bewusst nur den kleinsten überprüfbaren Kern um: ein begrenztes Einzelkompartiment-Hodgkin-Huxley-Modell sowie eine ebenso begrenzte gekoppelte Kompartimentkette als Rechenreferenz. Der nächste seriöse Schritt ist nicht, es „intelligent“ zu nennen, sondern Morphologie, Kopplung, Solver, Datenherkunft und Validierung schrittweise und messbar zu erweitern.
 
 ## Primärquellen
 

@@ -33,6 +33,14 @@ npm run neuron:sim
 ```
 
 ```bash
+npm run neuron:multi
+```
+
+```bash
+npm run map3d:libraries
+```
+
+```bash
 node bin/cli.js --avatar-01610
 ```
 
@@ -87,6 +95,25 @@ const trace = simulateNeuron({
 console.log(Math.max(...trace.map((sample) => sample.voltage)));
 ```
 
+```js
+const {simulateMultiCompartment} = require('ava');
+
+const trace = simulateMultiCompartment({
+  durationMs: 30,
+  dt: 0.01,
+  current: (timeMs, index) => (index === 0 && timeMs >= 5 && timeMs < 25 ? 10 : 0),
+});
+
+console.log(trace[0].compartments.length); // 3
+```
+
+```js
+const {map3dLibrariesReport, map3dLibrariesData} = require('ava');
+
+console.log(map3dLibrariesReport());
+console.log(map3dLibrariesData().libraries.length); // 16
+```
+
 ### Options
 
 | Option   | Type    | Default         | Description                      |
@@ -117,6 +144,12 @@ accidentally resolving an unrelated npm package with the common name `ava`.
   deterministic single-compartment membrane simulation with bounded inputs and
   regression tests. It is not a full pyramidal-cell model, learning system, or
   autonomous AVA/JARVIS agent.
+- [Multi-compartment Hodgkin-Huxley teaching prototype](docs/multi-compartment-prototype.md) -
+  deterministic chain of axially coupled compartments with per-compartment
+  stimulus; still not the published Hay L5b model or a NEURON simulation.
+- [Open-source 3D map and globe libraries](docs/map3d-libraries.md) - curated
+  metadata-only reference list of 16 open-source 3D mapping projects; no
+  dependencies and no third-party code.
 - [AVA Voice Prototype](docs/ava-voice-prototype.md) - offline PCM effects using
   a creative radio-style profile; it does not capture or play audio.
 
