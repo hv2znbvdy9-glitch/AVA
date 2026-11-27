@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="AVA Orbit: kostenloser 3D-Globus mit öffentlichen Satelliten-Bahndaten, berechneten Positionen und nachvollziehbaren Quellen.">
+	<meta name="referrer" content="no-referrer">
+	<title>AVA Orbit · 01610–15769</title>
+	<link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Widgets/widgets.css">
+	<link rel="stylesheet" href="styles.css">
+	<script defer src="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Cesium.js"></script>
+	<script defer src="vendor/satellite.min.js"></script>
+	<script defer src="orbit-core.js"></script>
+	<script defer src="app.js"></script>
+</head>
+<body>
+	<a class="skip" href="#catalogue">Zur Satellitenauswahl</a>
+	<header class="topbar">
+		<a class="brand" href="./" aria-label="AVA Orbit Startseite"><span class="brand-mark" aria-hidden="true">◉</span><span>AVA <b>ORBIT</b><small>01610–15769 / GEO</small></span></a>
+		<div class="top-context"><span class="tag">ÖFFENTLICHE BAHNDATEN</span><span>Die Erde. Ein anderer Blick.</span></div>
+		<button id="refresh" class="button primary" disabled>Daten aktualisieren</button>
+	</header>
+	<main>
+		<section class="intro" aria-labelledby="page-title">
+			<div><p class="eyebrow">AVA · OBSERVATORIUM</p><h1 id="page-title">Perspektive: <em>Orbit.</em></h1><p>Raumstationen entdecken. Bahnen verstehen.</p></div>
+			<div class="clock"><span>DARSTELLUNGSZEIT · UTC</span><time id="clock">—</time><span id="time-mode">Aktuelle Zeit · Positionen berechnet</span></div>
+		</section>
+		<div class="workspace">
+			<aside class="catalogue panel" id="catalogue" aria-labelledby="objects-title">
+				<div class="panel-heading"><h2 id="objects-title">Objekte</h2><span class="count" id="count">0</span></div>
+				<p class="panel-description">CelesTrak · Space stations</p>
+				<label class="search"><span>⌕</span><input id="search" type="search" placeholder="Name oder NORAD-ID" aria-label="Satelliten nach Name oder NORAD-ID suchen" autocomplete="off"></label>
+				<div id="objects" class="object-list" aria-label="Verfügbare Satelliten"><p class="empty">Bahndaten werden geladen …</p></div>
+				<p class="list-note">Gemeinsam fliegende Module können sich in der Ansicht überlagern.</p>
+			</aside>
+			<section class="globe-panel" aria-label="Interaktiver Globus">
+				<div id="globe" role="img" aria-label="3D-Globus mit berechneten Satellitenpositionen"></div>
+				<div id="globe-error" class="globe-error" hidden>Die 3D-Ansicht ist nicht verfügbar. Daten und Export bleiben unten zugänglich.</div>
+				<div class="globe-caption"><span class="live-dot" aria-hidden="true"></span>SGP4 · BERECHNETE POSITIONEN</div>
+				<div class="map-controls"><button id="home" class="button" disabled>Erde</button><button id="focus" class="button" disabled>Objekt zentrieren</button><button id="view" class="button" disabled>2D-Karte</button></div>
+				<div class="map-legend"><span class="legend-line"></span><span>Ausgewählte Bahn · ±45 Min.</span><span class="legend-point"></span><span>Objekte</span></div>
+			</section>
+			<aside class="telemetry panel" aria-labelledby="selected-name">
+				<p class="eyebrow">AUSGEWÄHLTES OBJEKT</p><h2 id="selected-name">—</h2><p id="selected-id" class="mono muted">NORAD —</p>
+				<div class="altitude"><span>HÖHE ÜBER ELLIPSOID</span><p><strong id="altitude">—</strong> <span>km</span></p></div>
+				<dl class="measurements"><div><dt>Geschwindigkeit¹</dt><dd><span id="speed">—</span> <small>km/s</small></dd></div><div><dt>Breitengrad</dt><dd id="latitude">—</dd></div><div><dt>Längengrad</dt><dd id="longitude">—</dd></div><div><dt>Inklination</dt><dd id="inclination">—</dd></div><div><dt>Umlaufdauer²</dt><dd><span id="period">—</span> <small>min</small></dd></div></dl>
+				<div class="epoch"><span>BAHNEPOCHE · UTC</span><time id="epoch">—</time><p id="age">—</p></div>
+				<button id="export" class="button export" disabled>Position als CSV speichern</button>
+				<p class="footnote">¹ Betrag der Geschwindigkeit im Inertialsystem. ² Aus der mittleren Bewegung.</p>
+			</aside>
+		</div>
+		<section class="timebar" aria-label="Darstellungszeit steuern">
+			<div class="time-actions"><button id="pause" class="button">Zeit pausieren</button><button id="now" class="text-button">Jetzt</button></div>
+			<label for="offset">Zeitversatz <output id="offset-label" for="offset">0 min</output></label><input id="offset" type="range" min="-90" max="90" step="1" value="0" aria-label="Zeitversatz in Minuten">
+			<span class="range-end">+90 min</span>
+		</section>
+		<section class="data-strip" aria-label="Datenqualität"><div><span class="eyebrow">DATENSTAND</span><p id="data-status" role="status" aria-live="polite">Lade gespeicherte Bahnelemente …</p></div><div><span class="eyebrow">ABGERUFEN · UTC</span><p id="retrieved" class="mono">—</p></div><a href="https://celestrak.org/NORAD/elements/" target="_blank" rel="noreferrer">Quelle: CelesTrak</a></section>
+		<details class="about"><summary>Was zeigen diese Daten?</summary><div class="about-body"><p>Die Positionen entstehen aus öffentlichen Bahnelementen und dem SGP4-Modell. Sie sind keine Live-Telemetrie. Bahnepoche und Abrufzeit bezeichnen unterschiedliche Zeitpunkte. Nach 48 Stunden erscheint ein Altershinweis; mehr als sieben Tage Abstand zur Bahnepoche werden nicht berechnet.</p><p>Die Darstellung zeigt öffentlich katalogisierte Objekte, keine vollständige Satellitenliste, Sensoraufnahmen oder beobachteten Personen. Aus einem Überflug lässt sich kein Beobachtungsziel ableiten. Die Grundkarte ist ein Übersichtsbild ohne Live-Aufnahmen; das Gelände ist ein Ellipsoid.</p><p>Neue Bahndaten werden nur auf Knopfdruck und höchstens alle zwei Stunden pro Browser abgerufen. Ein gespeicherter Datenstand bleibt bei Netzfehlern nutzbar. CesiumJS und die Grundkarte werden aus dem Cesium-CDN geladen; satellite.js ist lokal enthalten. Für die Nutzung ist kein API-Schlüssel nötig.</p><p><a href="https://github.com/CesiumGS/cesium" target="_blank" rel="noreferrer">CesiumJS · Apache-2.0</a> / <a href="vendor/satellite-LICENSE.md">satellite.js 6.0.1 · MIT</a></p></div></details>
+	</main>
+	<footer><span>AVA · AVO · AVI · VIV</span><span>Beobachten. Berechnen. Nachvollziehen.</span><span>01610–15769</span></footer>
+	<noscript><p class="globe-error">Für den interaktiven Globus bitte JavaScript aktivieren.</p></noscript>
+</body>
+</html>

@@ -134,3 +134,7 @@ accidentally resolving an unrelated npm package with the common name `ava`.
 
 - [Repair Windows system files from WinRE/WinPE](docs/repair-windows-system-files.md) -
   cautious reboot, BCD check, offline SFC/DISM order, and Startup Repair fallback.
+
+## AVA Orbit · 01610–15769
+
+3D-Globus mit öffentlichen Stations-Bahndaten, SGP4-Positionen, Zeitauswahl und CSV-Export. Start: `npm run orbit:start`, dann <http://127.0.0.1:4173> öffnen. Windows: `scripts\START_AVA_ORBIT.cmd`. Ohne Administratorrechte oder API-Schlüssel. [Anleitung, Datenquellen und Grenzen](docs/ava-orbit.md).
